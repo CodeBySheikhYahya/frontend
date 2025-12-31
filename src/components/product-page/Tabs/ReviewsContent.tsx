@@ -8,10 +8,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ReviewCard from "@/components/common/ReviewCard";
-import { reviewsData } from "@/app/page";
+import { getAllReviews } from "@/lib/supabase/reviews";
 import Link from "next/link";
 
-const ReviewsContent = () => {
+const ReviewsContent = async () => {
+  const reviewsData = await getAllReviews(100);
+
   return (
     <section>
       <div className="flex items-center justify-between flex-col sm:flex-row mb-5 sm:mb-6">
@@ -19,7 +21,7 @@ const ReviewsContent = () => {
           <h3 className="text-xl sm:text-2xl font-bold text-black mr-2">
             All Reviews
           </h3>
-          <span className="text-sm sm:text-base text-black/60">(451)</span>
+          <span className="text-sm sm:text-base text-black/60">({reviewsData.length})</span>
         </div>
         <div className="flex items-center space-x-2.5">
           <Select defaultValue="latest">

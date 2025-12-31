@@ -51,6 +51,23 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
   return (data || []).map(transformReview)
 }
 
+// Get all approved reviews
+export async function getAllReviews(limit: number = 100): Promise<Review[]> {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('is_approved', true)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error('Error fetching all reviews:', error)
+    return []
+  }
+
+  return (data || []).map(transformReview)
+}
+
 
 
 
