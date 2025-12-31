@@ -6,6 +6,9 @@ import Reviews from "@/components/homepage/Reviews";
 import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
 
+// Make this page dynamic to avoid build-time Supabase calls
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   // Fetch data from Supabase
   const [newArrivalsData, topSellingData, reviewsData] = await Promise.all([

@@ -5,6 +5,9 @@ import ProductCard from "@/components/common/ProductCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { getAllProducts } from "@/lib/supabase/products";
 
+// Make this page dynamic to avoid build-time Supabase calls
+export const dynamic = 'force-dynamic';
+
 const ShopPage: React.FC = async () => {
   // Fetch products from Supabase
   const products = await getAllProducts(9, 0);

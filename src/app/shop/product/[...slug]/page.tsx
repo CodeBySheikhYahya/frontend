@@ -5,6 +5,9 @@ import Tabs from "@/components/product-page/Tabs";
 import { getProductById, getRelatedProducts, getAllProducts } from "@/lib/supabase/products";
 import { notFound } from "next/navigation";
 
+// Make this page dynamic to avoid build-time Supabase calls
+export const dynamic = 'force-dynamic';
+
 export default async function ProductPage({
   params,
 }: {
