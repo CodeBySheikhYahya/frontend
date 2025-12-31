@@ -1,11 +1,14 @@
 import BreadcrumbShop from "@/components/shop-page/BreadcrumbShop";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiSliders } from "react-icons/fi";
-import { newArrivalsData, relatedProductData, topSellingData } from "../page";
 import ProductCard from "@/components/common/ProductCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
+import { getAllProducts } from "@/lib/supabase/products";
 
-const ShopPage: React.FC = () => {
+const ShopPage: React.FC = async () => {
+  // Fetch products from Supabase
+  const products = await getAllProducts(9, 0);
+
   return (
     <main className="pb-20">
       <div className="max-w-frame mx-auto px-4 xl:px-0">
@@ -19,7 +22,7 @@ const ShopPage: React.FC = () => {
             </div>
             <div className="flex flex-col sm:items-center sm:flex-row">
               <span className="text-sm md:text-base text-black/60 mr-3">
-                Showing 1-10 of 100 Products
+                Showing 1-{products.length} of {products.length} Products
               </span>
               <div className="flex items-center">
                 Sort by:{" "}
@@ -37,7 +40,7 @@ const ShopPage: React.FC = () => {
             </div>
           </div>
           <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-            {[...relatedProductData.slice(1, 4), ...newArrivalsData.slice(1, 4), ...topSellingData.slice(1, 4)].map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} data={product} />
             ))}
           </div>

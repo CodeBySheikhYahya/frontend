@@ -4,7 +4,7 @@ export type Discount = {
 };
 
 export type Product = {
-  id: number;
+  id: string | number; // Support both UUID (string) and numeric IDs
   title: string;
   srcUrl: string;
   gallery?: string[];

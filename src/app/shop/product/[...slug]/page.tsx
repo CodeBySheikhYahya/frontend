@@ -1,46 +1,41 @@
-import {
-  newArrivalsData,
-  relatedProductData,
-  topSellingData,
-} from "@/app/page";
 import ProductListSec from "@/components/common/ProductListSec";
 import BreadcrumbProduct from "@/components/product-page/BreadcrumbProduct";
 import Header from "@/components/product-page/Header";
 import Tabs from "@/components/product-page/Tabs";
-import { Product } from "@/types/product.types";
+import { getProductById, getRelatedProducts, getAllProducts } from "@/lib/supabase/products";
 import { notFound } from "next/navigation";
 
-const data: Product[] = [
-  ...newArrivalsData,
-  ...topSellingData,
-  ...relatedProductData,
-];
-
-export default function ProductPage({
+export default async function ProductPage({
   params,
 }: {
   params: { slug: string[] };
 }) {
-  const productData = data.find(
-    (product) => product.id === Number(params.slug[0])
-  );
+  // Get product ID from slug (first part)
+  const productId = params.slug[0];
+  
+  // Fetch product from Supabase
+  const productData = await getProductById(productId);
 
-  if (!productData?.title) {
+  if (!productData) {
     notFound();
   }
+
+  // Fetch related products (for now, just get some products as related)
+  // In the future, you can improve this to get products from same category
+  const relatedProducts = await getAllProducts(4, 0);
 
   return (
     <main>
       <div className="max-w-frame mx-auto px-4 xl:px-0">
         <hr className="h-[1px] border-t-black/10 mb-5 sm:mb-6" />
-        <BreadcrumbProduct title={productData?.title ?? "product"} />
+        <BreadcrumbProduct title={productData.title} />
         <section className="mb-11">
           <Header data={productData} />
         </section>
         <Tabs />
       </div>
       <div className="mb-[50px] sm:mb-20">
-        <ProductListSec title="You might also like" data={relatedProductData} />
+        <ProductListSec title="You might also like" data={relatedProducts.filter(p => p.id !== productData.id).slice(0, 4)} />
       </div>
     </main>
   );
