@@ -6,12 +6,20 @@ let supabaseClient: SupabaseClient | null = null
 export function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  // Debug logging
+  console.log('🔍 Supabase Config Check:')
+  console.log('  URL:', url ? 'SET ✅' : 'MISSING ❌')
+  console.log('  KEY:', key ? 'SET ✅' : 'MISSING ❌')
+  console.log('  Configured:', !!(url && key && url !== 'https://placeholder.supabase.co' && !key.includes('placeholder')))
+  
   return !!(url && key && url !== 'https://placeholder.supabase.co' && !key.includes('placeholder'))
 }
 
 function getSupabaseClient(): SupabaseClient | null {
   // Return null if not configured - functions will handle this
   if (!isSupabaseConfigured()) {
+    console.warn('⚠️ Supabase not configured - returning null client')
     return null
   }
 
@@ -22,6 +30,7 @@ function getSupabaseClient(): SupabaseClient | null {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+  console.log('✅ Creating Supabase client with URL:', supabaseUrl.substring(0, 30) + '...')
   supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
   return supabaseClient
 }

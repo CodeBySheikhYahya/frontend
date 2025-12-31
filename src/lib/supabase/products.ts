@@ -36,6 +36,7 @@ function transformProduct(dbProduct: any): Product {
 // Get new arrivals products
 export async function getNewArrivals(limit: number = 4): Promise<Product[]> {
   try {
+    console.log('📦 Fetching new arrivals...')
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -48,13 +49,14 @@ export async function getNewArrivals(limit: number = 4): Promise<Product[]> {
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching new arrivals:', error)
+      console.error('❌ Error fetching new arrivals:', error)
       return []
     }
 
+    console.log('✅ New arrivals fetched:', data?.length || 0, 'products')
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('Exception fetching new arrivals:', error)
+    console.error('❌ Exception fetching new arrivals:', error)
     return []
   }
 }
@@ -88,6 +90,7 @@ export async function getTopSelling(limit: number = 4): Promise<Product[]> {
 // Get all products (for shop page)
 export async function getAllProducts(limit: number = 10, offset: number = 0): Promise<Product[]> {
   try {
+    console.log('📦 Fetching all products...')
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -99,13 +102,14 @@ export async function getAllProducts(limit: number = 10, offset: number = 0): Pr
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('Error fetching products:', error)
+      console.error('❌ Error fetching products:', error)
       return []
     }
 
+    console.log('✅ Products fetched:', data?.length || 0, 'products')
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('Exception fetching products:', error)
+    console.error('❌ Exception fetching products:', error)
     return []
   }
 }
