@@ -2,21 +2,27 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let supabaseClient: SupabaseClient | null = null
 
-function getSupabaseClient(): SupabaseClient {
+// Check if Supabase is properly configured
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return !!(url && key && url !== 'https://placeholder.supabase.co' && !key.includes('placeholder'))
+}
+
+function getSupabaseClient(): SupabaseClient | null {
+  // Return null if not configured - functions will handle this
+  if (!isSupabaseConfigured()) {
+    return null
+  }
+
   if (supabaseClient) {
     return supabaseClient
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-  // Always create a client, even with placeholder values during build
-  // This prevents errors during build time
-  // At runtime, if env vars are missing, queries will fail but won't crash the app
-  const url = supabaseUrl || 'https://placeholder.supabase.co'
-  const key = supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder'
-
-  supabaseClient = createClient(url, key)
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
   return supabaseClient
 }
 
@@ -24,6 +30,34 @@ function getSupabaseClient(): SupabaseClient {
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     const client = getSupabaseClient()
+    
+    // If client is null (not configured), return a mock chain that returns empty results
+    if (!client) {
+      if (prop === 'from') {
+        return () => ({
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: () => Promise.resolve({ data: [], error: null }),
+                  range: () => Promise.resolve({ data: [], error: null })
+                }),
+                single: () => Promise.resolve({ data: null, error: null })
+              })
+            }),
+            single: () => Promise.resolve({ data: null, error: null })
+          })
+        })
+      }
+      if (prop === 'auth') {
+        return {
+          getUser: () => Promise.resolve({ data: { user: null }, error: null })
+        }
+      }
+      // For other properties, return a no-op function
+      return () => Promise.resolve({ data: null, error: null })
+    }
+    
     const value = client[prop as keyof SupabaseClient]
     
     // If it's a function, bind it to the client

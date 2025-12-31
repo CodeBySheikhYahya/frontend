@@ -35,64 +35,79 @@ function transformProduct(dbProduct: any): Product {
 
 // Get new arrivals products
 export async function getNewArrivals(limit: number = 4): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      images:product_images(*)
-    `)
-    .eq('is_active', true)
-    .eq('is_new_arrival', true)
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        images:product_images(*)
+      `)
+      .eq('is_active', true)
+      .eq('is_new_arrival', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
 
-  if (error) {
-    console.error('Error fetching new arrivals:', error)
+    if (error) {
+      console.error('Error fetching new arrivals:', error)
+      return []
+    }
+
+    return (data || []).map(transformProduct)
+  } catch (error) {
+    console.error('Exception fetching new arrivals:', error)
     return []
   }
-
-  return (data || []).map(transformProduct)
 }
 
 // Get top selling products
 export async function getTopSelling(limit: number = 4): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      images:product_images(*)
-    `)
-    .eq('is_active', true)
-    .eq('is_top_selling', true)
-    .order('total_reviews', { ascending: false })
-    .limit(limit)
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        images:product_images(*)
+      `)
+      .eq('is_active', true)
+      .eq('is_top_selling', true)
+      .order('total_reviews', { ascending: false })
+      .limit(limit)
 
-  if (error) {
-    console.error('Error fetching top selling:', error)
+    if (error) {
+      console.error('Error fetching top selling:', error)
+      return []
+    }
+
+    return (data || []).map(transformProduct)
+  } catch (error) {
+    console.error('Exception fetching top selling:', error)
     return []
   }
-
-  return (data || []).map(transformProduct)
 }
 
 // Get all products (for shop page)
 export async function getAllProducts(limit: number = 10, offset: number = 0): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      images:product_images(*)
-    `)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        images:product_images(*)
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-  if (error) {
-    console.error('Error fetching products:', error)
+    if (error) {
+      console.error('Error fetching products:', error)
+      return []
+    }
+
+    return (data || []).map(transformProduct)
+  } catch (error) {
+    console.error('Exception fetching products:', error)
     return []
   }
-
-  return (data || []).map(transformProduct)
 }
 
 // Get product by ID
