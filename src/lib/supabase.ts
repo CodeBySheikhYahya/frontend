@@ -43,20 +43,20 @@ export const supabase = new Proxy({} as SupabaseClient, {
     // If client is null (not configured), return a mock chain that returns empty results
     if (!client) {
       if (prop === 'from') {
-        return () => ({
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                order: () => ({
-                  limit: () => Promise.resolve({ data: [], error: null }),
-                  range: () => Promise.resolve({ data: [], error: null })
-                }),
-                single: () => Promise.resolve({ data: null, error: null })
-              })
-            }),
-            single: () => Promise.resolve({ data: null, error: null })
-          })
-        })
+        // Create a mock query builder that supports all chaining methods
+        return () => {
+          const mockQuery = {
+            select: () => mockQuery,
+            eq: () => mockQuery,
+            neq: () => mockQuery,
+            order: () => mockQuery,
+            limit: () => Promise.resolve({ data: [], error: null }),
+            range: () => Promise.resolve({ data: [], error: null }),
+            single: () => Promise.resolve({ data: null, error: null }),
+            then: (onResolve: any) => Promise.resolve({ data: [], error: null }).then(onResolve)
+          }
+          return mockQuery
+        }
       }
       if (prop === 'auth') {
         return {
