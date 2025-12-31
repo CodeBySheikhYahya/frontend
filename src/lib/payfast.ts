@@ -13,6 +13,33 @@ const PAYFAST_CONFIG = {
 };
 
 /**
+ * Payment data interface for PayFast
+ */
+export interface PayFastPaymentData {
+  // Required fields
+  merchant_id: string;
+  merchant_key: string;
+  return_url: string;
+  cancel_url: string;
+  notify_url: string;
+  name_first: string;
+  name_last: string;
+  email_address: string;
+  cell_number?: string;
+  amount: string;
+  item_name: string;
+  
+  // Optional fields
+  item_description?: string;
+  custom_int1?: string; // Order ID
+  custom_str1?: string; // Order number
+  custom_str2?: string; // Additional data
+  
+  // Signature (generated)
+  signature?: string;
+}
+
+/**
  * Format amount for PayFast
  * PayFast requires amounts as strings with 2 decimal places
  * Example: 100.50 -> "100.50"
@@ -33,7 +60,7 @@ export function formatAmount(amount: number): string {
  * @param data - Payment data object
  * @returns MD5 signature string
  */
-export function generateSignature(data: Record<string, string>): string {
+export function generateSignature(data: Record<string, string> | PayFastPaymentData): string {
   // Remove signature and empty values from data
   const cleanData: Record<string, string> = {};
   for (const [key, value] of Object.entries(data)) {
@@ -59,33 +86,6 @@ export function generateSignature(data: Record<string, string>): string {
   const signature = crypto.createHash('md5').update(stringToHash).digest('hex');
 
   return signature;
-}
-
-/**
- * Payment data interface for PayFast
- */
-export interface PayFastPaymentData {
-  // Required fields
-  merchant_id: string;
-  merchant_key: string;
-  return_url: string;
-  cancel_url: string;
-  notify_url: string;
-  name_first: string;
-  name_last: string;
-  email_address: string;
-  cell_number?: string;
-  amount: string;
-  item_name: string;
-  
-  // Optional fields
-  item_description?: string;
-  custom_int1?: string; // Order ID
-  custom_str1?: string; // Order number
-  custom_str2?: string; // Additional data
-  
-  // Signature (generated)
-  signature?: string;
 }
 
 /**
