@@ -5,14 +5,33 @@ import { Product } from "@/types/product.types";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
 import { RootState } from "@/lib/store";
 import { addToCart, CartItem } from "@/lib/features/carts/cartsSlice";
+import { cn } from "@/lib/utils";
 
-const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
+const AddToCartBtn = ({ data, product }: { data: Product & { quantity: number }; product: Product }) => {
   const dispatch = useAppDispatch();
   const { colorSelection, sizeSelection } = useAppSelector(
     (state: RootState) => state.products
   );
 
+  // Find selected variant and check stock
+  const selectedVariant = React.useMemo(() => {
+    const variants = product.variants || data.variants || [];
+    if (!variants.length || !colorSelection.name || !sizeSelection) return null;
+    
+    return variants.find(
+      (variant) =>
+        variant.color?.name === colorSelection.name &&
+        variant.size?.name === sizeSelection &&
+        variant.is_active !== false
+    );
+  }, [product.variants, data.variants, colorSelection.name, sizeSelection]);
+
+  const isOutOfStock = selectedVariant ? (selectedVariant.stock_quantity || 0) === 0 : false;
+  const hasSelection = colorSelection.name && sizeSelection;
+
   const handleAddToCart = () => {
+    if (isOutOfStock || !hasSelection) return;
+    
     // Convert UUID string to number hash for cart compatibility
     const getId = () => {
       if (typeof data.id === 'number') return data.id;
@@ -38,9 +57,15 @@ const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
     <button
       type="button"
       onClick={handleAddToCart}
-      className="bg-black w-full ml-3 sm:ml-5 rounded-full h-11 md:h-[52px] text-sm sm:text-base text-white hover:bg-black/80 transition-all"
+      disabled={isOutOfStock || !hasSelection}
+      className={cn(
+        "w-full ml-3 sm:ml-5 rounded-full h-11 md:h-[52px] text-sm sm:text-base text-white transition-all",
+        isOutOfStock || !hasSelection
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-black hover:bg-black/80"
+      )}
     >
-      Add to Cart
+      {isOutOfStock ? "Out of Stock" : !hasSelection ? "Select Options" : "Add to Cart"}
     </button>
   );
 };

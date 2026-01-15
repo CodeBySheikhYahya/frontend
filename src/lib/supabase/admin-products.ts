@@ -381,6 +381,134 @@ export async function getSizes(): Promise<Array<{ id: string; name: string }>> {
   }
 }
 
+// Create new color (or get existing one)
+export async function createColor(
+  name: string,
+  hexCode: string
+): Promise<{ success: boolean; colorId?: string; error?: string }> {
+  try {
+    const trimmedName = name.trim()
+    const trimmedHex = hexCode.trim()
+    
+    console.log('🎨 Creating color:', { name: trimmedName, hexCode: trimmedHex })
+    
+    // First, check if color already exists
+    const { data: existingColor, error: checkError } = await supabase
+      .from('colors')
+      .select('id')
+      .eq('name', trimmedName)
+      .maybeSingle()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('❌ Error checking existing color:', checkError)
+      return { success: false, error: checkError.message }
+    }
+
+    // If color exists, return its ID
+    if (existingColor) {
+      console.log('✅ Color already exists, using existing:', existingColor.id)
+      return { success: true, colorId: existingColor.id }
+    }
+
+    // Color doesn't exist, create it
+    const { data: color, error } = await supabase
+      .from('colors')
+      .insert({
+        name: trimmedName,
+        hex_code: trimmedHex,
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      console.error('❌ Error creating color:', error)
+      // If it's a duplicate key error, try to fetch the existing one
+      if (error.code === '23505') {
+        const { data: existing, error: fetchError } = await supabase
+          .from('colors')
+          .select('id')
+          .eq('name', trimmedName)
+          .single()
+        
+        if (!fetchError && existing) {
+          console.log('✅ Found existing color after duplicate error:', existing.id)
+          return { success: true, colorId: existing.id }
+        }
+      }
+      return { success: false, error: error.message }
+    }
+
+    console.log('✅ Color created successfully:', color.id)
+    return { success: true, colorId: color.id }
+  } catch (error: any) {
+    console.error('❌ Exception creating color:', error)
+    return { success: false, error: error.message || 'Failed to create color' }
+  }
+}
+
+// Create new size (or get existing one)
+export async function createSize(
+  name: string
+): Promise<{ success: boolean; sizeId?: string; error?: string }> {
+  try {
+    const trimmedName = name.trim()
+    
+    console.log('📏 Creating size:', trimmedName)
+    
+    // First, check if size already exists
+    const { data: existingSize, error: checkError } = await supabase
+      .from('sizes')
+      .select('id')
+      .eq('name', trimmedName)
+      .maybeSingle()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('❌ Error checking existing size:', checkError)
+      return { success: false, error: checkError.message }
+    }
+
+    // If size exists, return its ID
+    if (existingSize) {
+      console.log('✅ Size already exists, using existing:', existingSize.id)
+      return { success: true, sizeId: existingSize.id }
+    }
+
+    // Size doesn't exist, create it
+    const { data: size, error } = await supabase
+      .from('sizes')
+      .insert({
+        name: trimmedName,
+        display_order: 0,
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      console.error('❌ Error creating size:', error)
+      // If it's a duplicate key error, try to fetch the existing one
+      if (error.code === '23505') {
+        const { data: existing, error: fetchError } = await supabase
+          .from('sizes')
+          .select('id')
+          .eq('name', trimmedName)
+          .single()
+        
+        if (!fetchError && existing) {
+          console.log('✅ Found existing size after duplicate error:', existing.id)
+          return { success: true, sizeId: existing.id }
+        }
+      }
+      return { success: false, error: error.message }
+    }
+
+    console.log('✅ Size created successfully:', size.id)
+    return { success: true, sizeId: size.id }
+  } catch (error: any) {
+    console.error('❌ Exception creating size:', error)
+    return { success: false, error: error.message || 'Failed to create size' }
+  }
+}
+
 // Create or update product variant
 export interface VariantData {
   product_id: string

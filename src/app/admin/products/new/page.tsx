@@ -13,6 +13,8 @@ import {
   getBrands,
   getColors,
   getSizes,
+  createColor,
+  createSize,
   upsertVariant,
   generateSlug,
   type VariantData,
@@ -27,6 +29,9 @@ interface VariantFormData {
   stock_quantity: number;
   price_override: string;
   is_active: boolean;
+  newColorName?: string;
+  newColorHex?: string;
+  newSizeName?: string;
 }
 
 export default function AddProductPage() {
@@ -125,8 +130,52 @@ export default function AddProductPage() {
         stock_quantity: 0,
         price_override: "",
         is_active: true,
+        newColorName: "",
+        newColorHex: "",
+        newSizeName: "",
       },
     ]);
+  };
+
+  const handleCreateColor = async (index: number) => {
+    const variant = variants[index];
+    if (!variant.newColorName || !variant.newColorHex) {
+      alert("Please enter color name and hex code");
+      return;
+    }
+
+    const result = await createColor(variant.newColorName, variant.newColorHex);
+    if (result.success && result.colorId) {
+      // Refresh colors list
+      const updatedColors = await getColors();
+      setColors(updatedColors);
+      // Set the new color as selected
+      updateVariant(index, "color_id", result.colorId);
+      updateVariant(index, "newColorName", "");
+      updateVariant(index, "newColorHex", "");
+    } else {
+      alert(`Failed to create color: ${result.error}`);
+    }
+  };
+
+  const handleCreateSize = async (index: number) => {
+    const variant = variants[index];
+    if (!variant.newSizeName) {
+      alert("Please enter size name");
+      return;
+    }
+
+    const result = await createSize(variant.newSizeName);
+    if (result.success && result.sizeId) {
+      // Refresh sizes list
+      const updatedSizes = await getSizes();
+      setSizes(updatedSizes);
+      // Set the new size as selected
+      updateVariant(index, "size_id", result.sizeId);
+      updateVariant(index, "newSizeName", "");
+    } else {
+      alert(`Failed to create size: ${result.error}`);
+    }
   };
 
   const updateVariant = (index: number, field: keyof VariantFormData, value: any) => {
@@ -511,20 +560,67 @@ export default function AddProductPage() {
                       Color *
                     </label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0"
-                      value={variant.color_id}
-                      onChange={(e) =>
-                        updateVariant(index, "color_id", e.target.value)
-                      }
-                      required
+                      className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
+                      value={variant.color_id === "new" ? "new" : variant.color_id}
+                      onChange={(e) => {
+                        if (e.target.value === "new") {
+                          updateVariant(index, "color_id", "new");
+                        } else {
+                          updateVariant(index, "color_id", e.target.value);
+                        }
+                      }}
+                      required={!variant.color_id || variant.color_id !== "new"}
                     >
                       <option value="">Select Color</option>
+                      <option value="new">+ Add New Color</option>
                       {colors.map((color) => (
                         <option key={color.id} value={color.id}>
                           {color.name}
                         </option>
                       ))}
                     </select>
+                    {variant.color_id === "new" && (
+                      <div className="space-y-2">
+                        <InputGroup className="bg-[#F0F0F0]">
+                          <InputGroup.Input
+                            type="text"
+                            placeholder="Color Name"
+                            value={variant.newColorName || ""}
+                            onChange={(e) =>
+                              updateVariant(index, "newColorName", e.target.value)
+                            }
+                            className="text-sm"
+                          />
+                        </InputGroup>
+                        <div className="flex gap-2">
+                          <InputGroup className="bg-[#F0F0F0] flex-1">
+                            <InputGroup.Input
+                              type="text"
+                              placeholder="#FFFFFF"
+                              value={variant.newColorHex || ""}
+                              onChange={(e) =>
+                                updateVariant(index, "newColorHex", e.target.value)
+                              }
+                              className="text-sm"
+                            />
+                          </InputGroup>
+                          {variant.newColorHex && (
+                            <div
+                              className="w-10 h-10 rounded border border-gray-300"
+                              style={{ backgroundColor: variant.newColorHex }}
+                            />
+                          )}
+                          <Button
+                            type="button"
+                            onClick={() => handleCreateColor(index)}
+                            size="sm"
+                            className="bg-black text-white"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -532,20 +628,48 @@ export default function AddProductPage() {
                       Size *
                     </label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0"
-                      value={variant.size_id}
-                      onChange={(e) =>
-                        updateVariant(index, "size_id", e.target.value)
-                      }
-                      required
+                      className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
+                      value={variant.size_id === "new" ? "new" : variant.size_id}
+                      onChange={(e) => {
+                        if (e.target.value === "new") {
+                          updateVariant(index, "size_id", "new");
+                        } else {
+                          updateVariant(index, "size_id", e.target.value);
+                        }
+                      }}
+                      required={!variant.size_id || variant.size_id !== "new"}
                     >
                       <option value="">Select Size</option>
+                      <option value="new">+ Add New Size</option>
                       {sizes.map((size) => (
                         <option key={size.id} value={size.id}>
                           {size.name}
                         </option>
                       ))}
                     </select>
+                    {variant.size_id === "new" && (
+                      <div className="flex gap-2">
+                        <InputGroup className="bg-[#F0F0F0] flex-1">
+                          <InputGroup.Input
+                            type="text"
+                            placeholder="Size Name (e.g., XL, 2XL)"
+                            value={variant.newSizeName || ""}
+                            onChange={(e) =>
+                              updateVariant(index, "newSizeName", e.target.value)
+                            }
+                            className="text-sm"
+                          />
+                        </InputGroup>
+                        <Button
+                          type="button"
+                          onClick={() => handleCreateSize(index)}
+                          size="sm"
+                          className="bg-black text-white"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div>

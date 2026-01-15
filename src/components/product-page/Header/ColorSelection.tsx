@@ -17,42 +17,46 @@ const ColorSelection = ({ product }: { product: Product }) => {
   );
   const dispatch = useAppDispatch();
 
-  // Get unique colors from product variants
+  const { sizeSelection } = useAppSelector((state: RootState) => state.products);
+
+  // Get unique colors from product variants with stock info
   const availableColors = useMemo(() => {
-    console.log('🎨 ColorSelection - Product variants:', product.variants)
-    console.log('🎨 ColorSelection - Variants length:', product.variants?.length || 0)
-    
     if (!product.variants || product.variants.length === 0) {
-      console.log('⚠️ ColorSelection - No variants found!')
       return [];
     }
     
-    const colorMap = new Map<string, { name: string; hex_code: string }>();
+    const colorMap = new Map<string, { name: string; hex_code: string; hasStock: boolean }>();
     
-    product.variants.forEach((variant, index) => {
-      console.log(`🎨 Variant ${index}:`, variant)
-      console.log(`🎨 Variant ${index} - color:`, variant.color)
-      console.log(`🎨 Variant ${index} - is_active:`, variant.is_active)
-      
-      // Show color if variant is active and has color data
-      // Don't filter by stock - show all active variants
+    product.variants.forEach((variant) => {
       if (variant.color && variant.is_active !== false) {
-        console.log(`✅ Variant ${index} - Adding color:`, variant.color.name)
-        if (!colorMap.has(variant.color.id)) {
-          colorMap.set(variant.color.id, {
+        const colorId = variant.color.id;
+        const hasStock = (variant.stock_quantity || 0) > 0;
+        
+        // If size is selected, only check variants with that size
+        const matchesSize = !sizeSelection || variant.size?.name === sizeSelection;
+        
+        if (!colorMap.has(colorId)) {
+          colorMap.set(colorId, {
             name: variant.color.name,
             hex_code: variant.color.hex_code,
+            hasStock: matchesSize ? hasStock : true, // If size not selected, show as available
           });
+        } else {
+          // If any variant with this color has stock, mark as hasStock
+          const existing = colorMap.get(colorId)!;
+          if (matchesSize && hasStock) {
+            colorMap.set(colorId, { ...existing, hasStock: true });
+          } else if (matchesSize && !hasStock && existing.hasStock) {
+            // Keep hasStock true if any variant has stock
+          } else if (matchesSize && !hasStock) {
+            colorMap.set(colorId, { ...existing, hasStock: false });
+          }
         }
-      } else {
-        console.log(`❌ Variant ${index} - Skipped (no color or inactive)`)
       }
     });
     
-    const colors = Array.from(colorMap.values())
-    console.log('🎨 Final available colors:', colors)
-    return colors;
-  }, [product.variants]);
+    return Array.from(colorMap.values());
+  }, [product.variants, sizeSelection]);
 
   if (availableColors.length === 0) {
     return null;
@@ -69,22 +73,32 @@ const ColorSelection = ({ product }: { product: Product }) => {
             name: color.name,
             code: `bg-[${color.hex_code}]`,
           };
+          const isSelected = colorSelection.name === color.name;
+          const isOutOfStock = !color.hasStock;
           
           return (
-            <button
-              key={index}
-              type="button"
-              className={cn([
-                "rounded-full w-9 sm:w-10 h-9 sm:h-10 flex items-center justify-center",
-                colorSelection.name === color.name && "ring-2 ring-black ring-offset-2",
-              ])}
-              style={{ backgroundColor: color.hex_code }}
-              onClick={() => dispatch(setColorSelection(colorObj))}
-            >
-              {colorSelection.name === color.name && (
-                <IoMdCheckmark className="text-base text-white" />
+            <div key={index} className="relative">
+              <button
+                type="button"
+                className={cn([
+                  "rounded-full w-9 sm:w-10 h-9 sm:h-10 flex items-center justify-center relative",
+                  isSelected && "ring-2 ring-black ring-offset-2",
+                  isOutOfStock && "opacity-50 cursor-not-allowed",
+                ])}
+                style={{ backgroundColor: color.hex_code }}
+                onClick={() => !isOutOfStock && dispatch(setColorSelection(colorObj))}
+                disabled={isOutOfStock}
+              >
+                {isSelected && !isOutOfStock && (
+                  <IoMdCheckmark className="text-base text-white" />
+                )}
+              </button>
+              {isOutOfStock && (
+                <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] text-red-600 font-medium whitespace-nowrap">
+                  Out of Stock
+                </span>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

@@ -90,3 +90,22 @@ CREATE TRIGGER update_admin_users_timestamp
     FOR EACH ROW
     EXECUTE FUNCTION update_admin_users_updated_at();
 
+-- ============================================
+-- ADMIN POLICIES FOR COLORS AND SIZES
+-- Allow authenticated users (admins) to create colors and sizes
+-- ============================================
+
+-- Policy: Authenticated users can insert colors
+CREATE POLICY "Authenticated users can insert colors"
+    ON colors
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+-- Policy: Authenticated users can insert sizes
+CREATE POLICY "Authenticated users can insert sizes"
+    ON sizes
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
