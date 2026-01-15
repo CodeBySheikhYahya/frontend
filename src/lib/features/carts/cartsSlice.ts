@@ -24,6 +24,7 @@ export type RemoveCartItem = {
 
 export type CartItem = {
   id: number;
+  productId?: string; // UUID from database (optional for backward compatibility)
   name: string;
   srcUrl: string;
   price: number;

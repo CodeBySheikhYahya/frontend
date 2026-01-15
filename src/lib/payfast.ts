@@ -12,6 +12,11 @@ const PAYFAST_CONFIG = {
   productionUrl: 'https://www.payfast.co.za/eng/process',
 };
 
+// Validate configuration
+if (!PAYFAST_CONFIG.merchantId || !PAYFAST_CONFIG.merchantKey) {
+  console.warn('PayFast: Missing merchant credentials. Please set NEXT_PUBLIC_PAYFAST_MERCHANT_ID and NEXT_PUBLIC_PAYFAST_MERCHANT_KEY');
+}
+
 /**
  * Payment data interface for PayFast
  */
@@ -28,6 +33,7 @@ export interface PayFastPaymentData {
   cell_number?: string;
   amount: string;
   item_name: string;
+  currency?: string; // Currency code (ZAR for South African Rand)
   
   // Optional fields
   item_description?: string;
@@ -53,9 +59,15 @@ export function formatAmount(amount: number): string {
  * 
  * PayFast signature process:
  * 1. Sort all parameters alphabetically by key
- * 2. Create query string: key1=value1&key2=value2
- * 3. Append passphrase if provided
+ * 2. Create query string: key1=value1&key2=value2 (URL encode values)
+ * 3. Append passphrase if provided (also URL encoded)
  * 4. Create MD5 hash of the result
+ * 
+ * IMPORTANT: PayFast signature requirements:
+ * - All values must be URL encoded using encodeURIComponent
+ * - Signature field itself is excluded
+ * - Empty/null values are excluded
+ * - Parameters sorted alphabetically
  * 
  * @param data - Payment data object
  * @returns MD5 signature string
@@ -64,6 +76,7 @@ export function generateSignature(data: Record<string, string> | PayFastPaymentD
   // Remove signature and empty values from data
   const cleanData: Record<string, string> = {};
   for (const [key, value] of Object.entries(data)) {
+    // Exclude signature field and empty values
     if (key !== 'signature' && value !== '' && value !== null && value !== undefined) {
       cleanData[key] = String(value);
     }
@@ -72,17 +85,22 @@ export function generateSignature(data: Record<string, string> | PayFastPaymentD
   // Sort parameters alphabetically by key
   const sortedKeys = Object.keys(cleanData).sort();
 
-  // Build query string
+  // Build query string - URL encode each value
   const queryString = sortedKeys
-    .map((key) => `${key}=${encodeURIComponent(cleanData[key]).replace(/%20/g, '+')}`)
+    .map((key) => {
+      const value = cleanData[key];
+      // URL encode the value
+      const encoded = encodeURIComponent(value);
+      return `${key}=${encoded}`;
+    })
     .join('&');
 
-  // Append passphrase if provided
+  // Append passphrase if provided (also URL encoded)
   const stringToHash = PAYFAST_CONFIG.saltPassphrase
     ? `${queryString}&passphrase=${encodeURIComponent(PAYFAST_CONFIG.saltPassphrase)}`
     : queryString;
 
-  // Generate MD5 hash
+  // Generate MD5 hash (lowercase)
   const signature = crypto.createHash('md5').update(stringToHash).digest('hex');
 
   return signature;
@@ -116,6 +134,7 @@ export function buildPaymentData(params: {
     // Payment details
     amount: formatAmount(params.amount),
     item_name: params.itemName,
+    currency: 'ZAR', // South African Rand - required by PayFast
     
     // Customer information
     name_first: params.firstName,

@@ -167,16 +167,29 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
     // Create order items
     console.log('=== CREATING ORDER ITEMS ===')
     const orderItems = []
+    const failedItems: string[] = []
+    
     for (const cartItem of data.cartItems) {
       console.log(`Processing cart item: ${cartItem.name}`)
-      // Try to find product by title
-      const productId = await getProductIdByTitle(cartItem.name)
-      console.log(`Product ID found: ${productId || 'NOT FOUND'}`)
+      
+      // Use productId from cart if available, otherwise try to find by title
+      let productId: string | null = null
+      
+      if (cartItem.productId) {
+        // Use productId directly from cart (preferred method)
+        productId = cartItem.productId
+        console.log(`✅ Using productId from cart: ${productId}`)
+      } else {
+        // Fallback: Try to find product by title (for backward compatibility)
+        console.log(`⚠️ No productId in cart, trying to find by title: ${cartItem.name}`)
+        productId = await getProductIdByTitle(cartItem.name)
+        console.log(`Product ID found by title: ${productId || 'NOT FOUND'}`)
+      }
       
       if (!productId) {
-        console.warn(`⚠️ Product not found: ${cartItem.name}, skipping order item`)
-        // Still create order item with snapshot data
-        // Note: This will fail if product_id is required, so we'll skip for now
+        const errorMsg = `Product not found for: ${cartItem.name}`
+        console.error(`❌ ${errorMsg}`)
+        failedItems.push(cartItem.name)
         continue
       }
 
@@ -213,12 +226,31 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
         discount_amount: discountAmount * cartItem.quantity,
         total_price: totalPrice,
       })
+      
+      console.log(`✅ Order item prepared for: ${cartItem.name}`)
+    }
+
+    // Safety check: Cancel order if no items were created
+    if (orderItems.length === 0) {
+      console.error('❌ CRITICAL: No order items could be created!')
+      console.error('Failed items:', failedItems)
+      
+      // Delete the order since it has no items
+      await supabase
+        .from('orders')
+        .delete()
+        .eq('id', order.id)
+      
+      return {
+        success: false,
+        error: `Failed to create order items. Products not found: ${failedItems.join(', ')}`,
+      }
     }
 
     // Insert order items
     console.log(`=== INSERTING ${orderItems.length} ORDER ITEMS ===`)
-    if (orderItems.length > 0) {
       console.log('Order items to insert:', orderItems)
+    
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems)
@@ -235,8 +267,13 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       if (itemsError) {
         console.error('❌ ERROR creating order items:', itemsError)
         console.error('Full error object:', JSON.stringify(itemsError, null, 2))
-        // Order is created but items failed - this is a problem
-        // We could delete the order or mark it as error
+      
+      // Delete the order since items failed
+      await supabase
+        .from('orders')
+        .delete()
+        .eq('id', order.id)
+      
         return {
           success: false,
           error: itemsError.message || 'Failed to create order items',
@@ -244,8 +281,10 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       }
 
       console.log('✅ Order items created successfully')
-    } else {
-      console.warn('⚠️ No order items to insert')
+    
+    // Log warning if some items failed
+    if (failedItems.length > 0) {
+      console.warn(`⚠️ Warning: ${failedItems.length} items failed but order was created with ${orderItems.length} items`)
     }
 
     console.log('=== ORDER CREATION COMPLETE ===')
@@ -329,12 +368,31 @@ export async function createPayFastOrder(data: CreateOrderData): Promise<OrderRe
     console.log('✅ Order created successfully:', order.id)
 
     // Create order items
+    console.log('=== CREATING ORDER ITEMS ===')
     const orderItems = []
+    const failedItems: string[] = []
+    
     for (const cartItem of data.cartItems) {
-      const productId = await getProductIdByTitle(cartItem.name)
+      console.log(`Processing cart item: ${cartItem.name}`)
+      
+      // Use productId from cart if available, otherwise try to find by title
+      let productId: string | null = null
+      
+      if (cartItem.productId) {
+        // Use productId directly from cart (preferred method)
+        productId = cartItem.productId
+        console.log(`✅ Using productId from cart: ${productId}`)
+      } else {
+        // Fallback: Try to find product by title (for backward compatibility)
+        console.log(`⚠️ No productId in cart, trying to find by title: ${cartItem.name}`)
+        productId = await getProductIdByTitle(cartItem.name)
+        console.log(`Product ID found by title: ${productId || 'NOT FOUND'}`)
+      }
       
       if (!productId) {
-        console.warn(`⚠️ Product not found: ${cartItem.name}, skipping order item`)
+        const errorMsg = `Product not found for: ${cartItem.name}`
+        console.error(`❌ ${errorMsg}`)
+        failedItems.push(cartItem.name)
         continue
       }
 
@@ -369,16 +427,42 @@ export async function createPayFastOrder(data: CreateOrderData): Promise<OrderRe
         discount_amount: discountAmount * cartItem.quantity,
         total_price: totalPrice,
       })
+      
+      console.log(`✅ Order item prepared for: ${cartItem.name}`)
+    }
+
+    // Safety check: Cancel order if no items were created
+    if (orderItems.length === 0) {
+      console.error('❌ CRITICAL: No order items could be created!')
+      console.error('Failed items:', failedItems)
+      
+      // Delete the order since it has no items
+      await supabase
+        .from('orders')
+        .delete()
+        .eq('id', order.id)
+      
+      return {
+        success: false,
+        error: `Failed to create order items. Products not found: ${failedItems.join(', ')}`,
+      }
     }
 
     // Insert order items
-    if (orderItems.length > 0) {
+    console.log(`=== INSERTING ${orderItems.length} ORDER ITEMS ===`)
       const { error: itemsError } = await supabase
         .from('order_items')
         .insert(orderItems)
 
       if (itemsError) {
         console.error('❌ ERROR creating order items:', itemsError)
+      
+      // Delete the order since items failed
+      await supabase
+        .from('orders')
+        .delete()
+        .eq('id', order.id)
+      
         return {
           success: false,
           error: itemsError.message || 'Failed to create order items',
@@ -386,6 +470,10 @@ export async function createPayFastOrder(data: CreateOrderData): Promise<OrderRe
       }
 
       console.log('✅ Order items created successfully')
+    
+    // Log warning if some items failed
+    if (failedItems.length > 0) {
+      console.warn(`⚠️ Warning: ${failedItems.length} items failed but order was created with ${orderItems.length} items`)
     }
 
     console.log('=== PAYFAST ORDER CREATION COMPLETE ===')
@@ -498,6 +586,144 @@ export async function getOrderByNumber(
     return data;
   } catch (error: any) {
     console.error('Exception fetching order:', error);
+    return null;
+  }
+}
+
+// Get full order details with items by order ID
+export async function getOrderDetailsById(
+  orderId: string
+): Promise<{
+  id: string;
+  order_number: string;
+  status: string;
+  payment_method: string | null;
+  payment_status: string;
+  subtotal: number;
+  discount_amount: number;
+  shipping_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  shipping_address: any;
+  billing_address: any;
+  created_at: string;
+  items: Array<{
+    id: string;
+    product_title: string;
+    product_image_url: string | null;
+    color_name: string | null;
+    size_name: string | null;
+    quantity: number;
+    unit_price: number;
+    discount_amount: number;
+    total_price: number;
+  }>;
+} | null> {
+  try {
+    // Fetch order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      console.error('Error fetching order:', orderError);
+      return null;
+    }
+
+    // Fetch order items
+    console.log('🔍 Fetching order items for order ID:', orderId);
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('id, product_title, product_image_url, color_name, size_name, quantity, unit_price, discount_amount, total_price')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: true });
+
+    console.log('📦 Order items query result:', {
+      itemsCount: items?.length || 0,
+      items: items,
+      error: itemsError ? {
+        message: itemsError.message,
+        details: itemsError.details,
+        hint: itemsError.hint,
+        code: itemsError.code,
+      } : null,
+    });
+
+    if (itemsError) {
+      console.error('❌ Error fetching order items:', itemsError);
+      return null;
+    }
+
+    return {
+      id: order.id,
+      order_number: order.order_number,
+      status: order.status,
+      payment_method: order.payment_method,
+      payment_status: order.payment_status,
+      subtotal: order.subtotal,
+      discount_amount: order.discount_amount,
+      shipping_amount: order.shipping_amount,
+      tax_amount: order.tax_amount,
+      total_amount: order.total_amount,
+      shipping_address: order.shipping_address,
+      billing_address: order.billing_address,
+      created_at: order.created_at,
+      items: items || [],
+    };
+  } catch (error: any) {
+    console.error('Exception fetching order details:', error);
+    return null;
+  }
+}
+
+// Get full order details with items by order number (alternative to ID)
+export async function getOrderDetailsByNumber(
+  orderNumber: string
+): Promise<{
+  id: string;
+  order_number: string;
+  status: string;
+  payment_method: string | null;
+  payment_status: string;
+  subtotal: number;
+  discount_amount: number;
+  shipping_amount: number;
+  tax_amount: number;
+  total_amount: number;
+  shipping_address: any;
+  billing_address: any;
+  created_at: string;
+  items: Array<{
+    id: string;
+    product_title: string;
+    product_image_url: string | null;
+    color_name: string | null;
+    size_name: string | null;
+    quantity: number;
+    unit_price: number;
+    discount_amount: number;
+    total_price: number;
+  }>;
+} | null> {
+  try {
+    // First get order by order number to get the ID
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('order_number', orderNumber)
+      .single();
+
+    if (orderError || !orderData) {
+      console.error('Error finding order by number:', orderError);
+      return null;
+    }
+
+    // Then get full details using the ID
+    return await getOrderDetailsById(orderData.id);
+  } catch (error: any) {
+    console.error('Exception fetching order details by number:', error);
     return null;
   }
 }

@@ -22,6 +22,7 @@ const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
 
     const cartItem: CartItem = {
       id: getId(),
+      productId: typeof data.id === 'string' ? data.id : undefined, // Store UUID if available
       name: data.title,
       srcUrl: data.srcUrl,
       price: data.price,

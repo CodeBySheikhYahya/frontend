@@ -38,40 +38,40 @@ const shippingSchema = z.object({
   city: z.string().min(1, "City is required"),
   zipCode: z.string().min(1, "ZIP code is required"),
   country: z.string().min(1, "Country is required"),
-  paymentMethod: z.enum(["cod", "bank_transfer", "easypaisa", "jazzcash", "payfast"]).optional(),
+  // paymentMethod: z.enum(["cod", "bank_transfer", "easypaisa", "jazzcash", "payfast"]).optional(),
 });
 
 type ShippingFormData = z.infer<typeof shippingSchema>;
 
-type PaymentMethod = "cod" | "bank_transfer" | "easypaisa" | "jazzcash" | "payfast";
+// type PaymentMethod = "cod" | "bank_transfer" | "easypaisa" | "jazzcash" | "payfast";
 
-const paymentMethods: { value: PaymentMethod; label: string; description: string }[] = [
-  {
-    value: "cod",
-    label: "Cash on Delivery (COD)",
-    description: "Pay when you receive your order",
-  },
-  {
-    value: "bank_transfer",
-    label: "Bank Transfer",
-    description: "Transfer directly to our bank account",
-  },
-  {
-    value: "easypaisa",
-    label: "Easypaisa",
-    description: "Pay using your Easypaisa wallet",
-  },
-  {
-    value: "jazzcash",
-    label: "JazzCash",
-    description: "Pay using your JazzCash wallet",
-  },
-  {
-    value: "payfast",
-    label: "PayFast (Card Payment)",
-    description: "Pay using credit or debit card",
-  },
-];
+// const paymentMethods: { value: PaymentMethod; label: string; description: string }[] = [
+//   {
+//     value: "cod",
+//     label: "Cash on Delivery (COD)",
+//     description: "Pay when you receive your order",
+//   },
+//   {
+//     value: "bank_transfer",
+//     label: "Bank Transfer",
+//     description: "Transfer directly to our bank account",
+//   },
+//   {
+//     value: "easypaisa",
+//     label: "Easypaisa",
+//     description: "Pay using your Easypaisa wallet",
+//   },
+//   {
+//     value: "jazzcash",
+//     label: "JazzCash",
+//     description: "Pay using your JazzCash wallet",
+//   },
+//   {
+//     value: "payfast",
+//     label: "PayFast (Card Payment)",
+//     description: "Pay using credit or debit card",
+//   },
+// ];
 
 const CheckoutPage = () => {
   const { cart, adjustedTotalPrice, totalPrice } = useAppSelector(
@@ -88,7 +88,7 @@ const CheckoutPage = () => {
     city: "",
     zipCode: "",
     country: "Pakistan",
-    paymentMethod: undefined,
+    // paymentMethod: undefined,
   });
 
   // Get Pakistan cities
@@ -97,7 +97,7 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isRedirectingToPayFast, setIsRedirectingToPayFast] = useState(false);
+  // const [isRedirectingToPayFast, setIsRedirectingToPayFast] = useState(false);
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -123,10 +123,10 @@ const CheckoutPage = () => {
     setSubmitError(null);
     
     // Check payment method manually
-    if (!shippingInfo.paymentMethod) {
-      setErrors({ ...errors, paymentMethod: "Please select a payment method" });
-      return;
-    }
+    // if (!shippingInfo.paymentMethod) {
+    //   setErrors({ ...errors, paymentMethod: "Please select a payment method" });
+    //   return;
+    // }
     
     // Validate with Zod
     const result = shippingSchema.safeParse(shippingInfo);
@@ -146,7 +146,7 @@ const CheckoutPage = () => {
     setErrors({});
     
     // Handle COD orders
-    if (shippingInfo.paymentMethod === "cod") {
+    // if (shippingInfo.paymentMethod === "cod") {
       setIsSubmitting(true);
       
       try {
@@ -180,79 +180,81 @@ const CheckoutPage = () => {
         setSubmitError(error.message || "An unexpected error occurred. Please try again.");
         setIsSubmitting(false);
       }
-    } else if (shippingInfo.paymentMethod === "payfast") {
-      // Handle PayFast payments
-      setIsSubmitting(true);
-      setIsRedirectingToPayFast(true);
-      
-      try {
-        // Call API to initiate PayFast payment
-        const response = await fetch("/api/payfast/initiate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            cartItems: cart.items,
-            shippingInfo: {
-              firstName: shippingInfo.firstName,
-              lastName: shippingInfo.lastName,
-              email: shippingInfo.email,
-              phone: shippingInfo.phone,
-              address: shippingInfo.address,
-              city: shippingInfo.city,
-              zipCode: shippingInfo.zipCode,
-              country: shippingInfo.country,
-            },
-            subtotal: totalPrice,
-            discountAmount: totalPrice - adjustedTotalPrice,
-            totalAmount: adjustedTotalPrice,
-          }),
-        });
+    // } else if (shippingInfo.paymentMethod === "payfast") {
+    //   // Handle PayFast payments
+    //   setIsSubmitting(true);
+    //   setIsRedirectingToPayFast(true);
+    //   
+    //   try {
+    //     // Call API to initiate PayFast payment
+    //     const response = await fetch("/api/payfast/initiate", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         cartItems: cart.items,
+    //         shippingInfo: {
+    //           firstName: shippingInfo.firstName,
+    //           lastName: shippingInfo.lastName,
+    //           email: shippingInfo.email,
+    //           phone: shippingInfo.phone,
+    //           address: shippingInfo.address,
+    //           city: shippingInfo.city,
+    //           zipCode: shippingInfo.zipCode,
+    //           country: shippingInfo.country,
+    //         },
+    //         subtotal: totalPrice,
+    //         discountAmount: totalPrice - adjustedTotalPrice,
+    //         totalAmount: adjustedTotalPrice,
+    //       }),
+    //     });
 
-        const result = await response.json();
+    //     const result = await response.json();
 
-        if (!result.success) {
-          setSubmitError(result.error || "Failed to initiate payment. Please try again.");
-          setIsSubmitting(false);
-          setIsRedirectingToPayFast(false);
-          return;
-        }
+    //     if (!result.success) {
+    //       setSubmitError(result.error || "Failed to initiate payment. Please try again.");
+    //       setIsSubmitting(false);
+    //       setIsRedirectingToPayFast(false);
+    //       return;
+    //     }
 
-        // Create and submit form to PayFast
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = result.paymentUrl;
-        form.style.display = "none";
+    //     // Create and submit form to PayFast
+    //     const form = document.createElement("form");
+    //     form.method = "POST";
+    //     form.action = result.paymentUrl;
+    //     form.style.display = "none";
 
-        // Parse form data and create input fields
-        const formData = new URLSearchParams(result.formData);
-        formData.forEach((value, key) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
+    //     // Add all payment data fields to form
+    //     // PayFast expects form fields, not URL-encoded string
+    //     Object.entries(result.paymentData).forEach(([key, value]) => {
+    //       if (value !== undefined && value !== null && value !== '') {
+    //         const input = document.createElement("input");
+    //         input.type = "hidden";
+    //         input.name = key;
+    //         input.value = String(value);
+    //         form.appendChild(input);
+    //       }
+    //     });
 
-        // Add form to body and submit
-        document.body.appendChild(form);
-        form.submit();
+    //     // Add form to body and submit
+    //     document.body.appendChild(form);
+    //     form.submit();
 
-        // Note: User will be redirected to PayFast, so we don't reset state here
-        // The form submission will navigate away from the page
+    //     // Note: User will be redirected to PayFast, so we don't reset state here
+    //     // The form submission will navigate away from the page
 
-      } catch (error: any) {
-        console.error("Error initiating PayFast payment:", error);
-        setSubmitError(error.message || "An unexpected error occurred. Please try again.");
-        setIsSubmitting(false);
-        setIsRedirectingToPayFast(false);
-      }
-    } else {
-      // Handle other payment methods (to be implemented)
-      console.log("Other payment methods not yet implemented:", shippingInfo.paymentMethod);
-      setSubmitError("This payment method is not yet available. Please use Cash on Delivery or PayFast.");
-    }
+    //   } catch (error: any) {
+    //     console.error("Error initiating PayFast payment:", error);
+    //     setSubmitError(error.message || "An unexpected error occurred. Please try again.");
+    //     setIsSubmitting(false);
+    //     setIsRedirectingToPayFast(false);
+    //   }
+    // } else {
+    //   // Handle other payment methods (to be implemented)
+    //   console.log("Other payment methods not yet implemented:", shippingInfo.paymentMethod);
+    //   setSubmitError("This payment method is not yet available. Please use Cash on Delivery or PayFast.");
+    // }
   };
 
   return (
@@ -445,7 +447,7 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Method Selection */}
-              <div className="mt-8">
+              {/* <div className="mt-8">
                 <h2 className={cn([integralCF.className, "text-xl md:text-2xl font-bold mb-4"])}>
                   Payment Method
                 </h2>
@@ -486,7 +488,7 @@ const CheckoutPage = () => {
                 {errors.paymentMethod && (
                   <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>
                 )}
-              </div>
+              </div> */}
             </form>
           </div>
 
@@ -556,22 +558,20 @@ const CheckoutPage = () => {
                   <p className="text-red-600 text-sm">{submitError}</p>
                 </div>
               )}
-              {isRedirectingToPayFast && (
+              {/* {isRedirectingToPayFast && (
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-blue-600 text-sm">
                     Redirecting to PayFast payment page...
                   </p>
                 </div>
-              )}
+              )} */}
               <Button
                 type="submit"
                 form="checkout-form"
-                disabled={isSubmitting || isRedirectingToPayFast}
+                disabled={isSubmitting}
                 className="w-full bg-black text-white hover:bg-black/90 h-12 text-base font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isRedirectingToPayFast
-                  ? "Redirecting to PayFast..."
-                  : isSubmitting
+                {isSubmitting
                   ? "Processing..."
                   : "Place Order"}
               </Button>

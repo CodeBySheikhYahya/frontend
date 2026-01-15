@@ -86,17 +86,26 @@ export async function POST(request: NextRequest) {
       orderNumber: orderResult.orderNumber,
     });
 
+    // Log payment data for debugging (remove sensitive data in production)
+    console.log('PayFast Payment Data:', {
+      merchant_id: paymentData.merchant_id,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      item_name: paymentData.item_name,
+      email: paymentData.email_address,
+      return_url: paymentData.return_url,
+      signature: paymentData.signature?.substring(0, 10) + '...',
+    });
+
     // Get PayFast payment URL
     const payFastUrl = getPayFastUrl();
 
-    // Build form data string
-    const formData = buildFormData(paymentData);
-
-    // Return payment URL and form data
+    // Return payment URL and payment data (frontend will build form)
+    // Don't URL-encode here - let the form handle encoding naturally
     return NextResponse.json({
       success: true,
       paymentUrl: payFastUrl,
-      formData: formData,
+      paymentData: paymentData, // Send raw data object
       orderId: orderResult.orderId,
       orderNumber: orderResult.orderNumber,
     });

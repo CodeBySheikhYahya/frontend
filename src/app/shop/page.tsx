@@ -3,14 +3,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FiSliders } from "react-icons/fi";
 import ProductCard from "@/components/common/ProductCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
-import { getAllProducts } from "@/lib/supabase/products";
+import { getAllProducts, getNewArrivals, getTopSelling, getOnSaleProducts } from "@/lib/supabase/products";
 
 // Make this page dynamic to avoid build-time Supabase calls
 export const dynamic = 'force-dynamic';
 
-const ShopPage: React.FC = async () => {
-  // Fetch products from Supabase
-  const products = await getAllProducts(9, 0);
+interface ShopPageProps {
+  searchParams: { filter?: string };
+}
+
+const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
+  const filter = searchParams?.filter || 'all';
+  const limit = 9;
+  const offset = 0;
+
+  // Fetch products based on filter
+  let products;
+  let pageTitle = 'All Products';
+
+  switch (filter) {
+    case 'new-arrivals':
+      products = await getNewArrivals(limit, offset);
+      pageTitle = 'New Arrivals';
+      break;
+    case 'top-selling':
+      products = await getTopSelling(limit, offset);
+      pageTitle = 'Top Selling';
+      break;
+    case 'on-sale':
+      products = await getOnSaleProducts(limit, offset);
+      pageTitle = 'On Sale';
+      break;
+    default:
+      products = await getAllProducts(limit, offset);
+      pageTitle = 'All Products';
+  }
 
   return (
     <main className="pb-20">
@@ -20,7 +47,7 @@ const ShopPage: React.FC = async () => {
         <div className="flex flex-col w-full space-y-5">
           <div className="flex flex-col lg:flex-row lg:justify-between">
             <div className="flex items-center justify-between">
-              <h1 className="font-bold text-2xl md:text-[32px]">Casual</h1>
+              <h1 className="font-bold text-2xl md:text-[32px] capitalize">{pageTitle}</h1>
               {/* You can remove MobileFilters component entirely */}
             </div>
             <div className="flex flex-col sm:items-center sm:flex-row">
@@ -43,9 +70,15 @@ const ShopPage: React.FC = async () => {
             </div>
           </div>
           <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-            {products.map((product) => (
-              <ProductCard key={product.id} data={product} />
-            ))}
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCard key={product.id} data={product} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-600">No products found in this category.</p>
+              </div>
+            )}
           </div>
           <hr className="border-t-black/10" />
           <Pagination className="justify-between">

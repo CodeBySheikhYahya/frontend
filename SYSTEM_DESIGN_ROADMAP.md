@@ -227,12 +227,7 @@
 - [ ] Delete product functionality
 - **Deliverable:** Admin can manage products
 
-#### **Day 12: Order Management (Admin)**
-- [ ] Admin orders list (`/app/admin/orders/page.tsx`)
-- [ ] Order details view
-- [ ] Update order status
-- [ ] Filter orders by status
-- **Deliverable:** Admin can manage orders
+## 
 
 #### **Day 13: Search & Filtering**
 - [ ] Search functionality

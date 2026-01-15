@@ -13,10 +13,7 @@ const OrderConfirmationPage = () => {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("orderNumber");
   const [mounted, setMounted] = useState(false);
-  const [order, setOrder] = useState<{
-    payment_method: string | null;
-    payment_status: string;
-  } | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,10 +26,7 @@ const OrderConfirmationPage = () => {
         setLoading(true);
         const orderData = await getOrderByNumber(orderNumber);
         if (orderData) {
-          setOrder({
-            payment_method: orderData.payment_method,
-            payment_status: orderData.payment_status,
-          });
+          setOrderId(orderData.id);
         }
         setLoading(false);
       } else {
@@ -71,17 +65,18 @@ const OrderConfirmationPage = () => {
             </p>
           )}
           <p className="text-base text-black/60 mb-8 text-center">
-            {order?.payment_method === "payfast" && order?.payment_status === "paid"
+            {/* {order?.payment_method === "payfast" && order?.payment_status === "paid"
               ? "Thank you for your payment! Your order has been confirmed and will be processed shortly."
               : order?.payment_method === "payfast" && order?.payment_status === "pending"
               ? "Your order has been received. We're waiting for payment confirmation from PayFast."
-              : "Thank you for your order! We've received your order and will process it shortly."}
+              : "Thank you for your order! We've received your order and will process it shortly."} */}
+            Thank you for your order! We've received your order and will process it shortly.
             {orderNumber && " You will receive a confirmation email shortly."}
           </p>
           <div className="bg-[#F0F0F0] rounded-lg p-6 mb-8 w-full">
             <h2 className="font-bold text-lg mb-4">What's Next?</h2>
             <ul className="space-y-2 text-black/70">
-              {order?.payment_method === "payfast" && order?.payment_status === "paid" ? (
+              {/* {order?.payment_method === "payfast" && order?.payment_status === "paid" ? (
                 <>
                   <li className="flex items-start gap-2">
                     <span className="font-bold">1.</span>
@@ -111,7 +106,7 @@ const OrderConfirmationPage = () => {
                     <span>You'll receive an email confirmation once payment is verified.</span>
                   </li>
                 </>
-              ) : (
+              ) : ( */}
                 <>
                   <li className="flex items-start gap-2">
                     <span className="font-bold">1.</span>
@@ -129,7 +124,7 @@ const OrderConfirmationPage = () => {
                     </span>
                   </li>
                 </>
-              )}
+              {/* )} */}
             </ul>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full">
@@ -141,13 +136,19 @@ const OrderConfirmationPage = () => {
                 Continue Shopping
               </Button>
             </Link>
-            {orderNumber && (
+            {orderId ? (
+              <Link href={`/orders/${orderId}`} className="flex-1">
+                <Button className="w-full bg-black text-white hover:bg-black/90">
+                  View Order Details
+                </Button>
+              </Link>
+            ) : orderNumber ? (
               <Link href={`/orders?orderNumber=${orderNumber}`} className="flex-1">
                 <Button className="w-full bg-black text-white hover:bg-black/90">
                   View Order
                 </Button>
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
