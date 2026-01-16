@@ -28,13 +28,11 @@ export async function getFeaturedReviews(limit: number = 3): Promise<Review[]> {
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching reviews:', error)
       return []
     }
 
     return (data || []).map(transformReview)
   } catch (error) {
-    console.error('Exception fetching reviews:', error)
     return []
   }
 }
@@ -49,7 +47,6 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching product reviews:', error)
     return []
   }
 
@@ -67,13 +64,11 @@ export async function getAllReviews(limit: number = 100): Promise<Review[]> {
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching all reviews:', error)
       return []
     }
 
     return (data || []).map(transformReview)
   } catch (error) {
-    console.error('Exception fetching all reviews:', error)
     return []
   }
 }

@@ -30,7 +30,6 @@ export default function AdminProductsPage() {
       const data = await getAllAdminProducts();
       setProducts(data);
     } catch (error) {
-      console.error("Error fetching products:", error);
     } finally {
       setLoading(false);
     }
@@ -50,7 +49,6 @@ export default function AdminProductsPage() {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      console.error("Error deleting product:", error);
       alert("Failed to delete product");
     } finally {
       setDeletingId(null);

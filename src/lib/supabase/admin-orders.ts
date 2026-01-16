@@ -42,13 +42,11 @@ export async function getAllAdminOrders(
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching orders:', error)
       return []
     }
 
     return (data || []) as AdminOrder[]
   } catch (error) {
-    console.error('Exception fetching orders:', error)
     return []
   }
 }
@@ -146,7 +144,6 @@ export async function getOrderStats(): Promise<{
       .select('status')
 
     if (error) {
-      console.error('Error fetching order stats:', error)
       return {
         total: 0,
         pending: 0,
@@ -169,7 +166,6 @@ export async function getOrderStats(): Promise<{
       refunded: orders.filter((o) => o.status === 'refunded').length,
     }
   } catch (error) {
-    console.error('Exception fetching order stats:', error)
     return {
       total: 0,
       pending: 0,

@@ -18,7 +18,6 @@ export async function isAdmin(): Promise<boolean> {
     // Method 1: Check environment variable (for development/no login)
     // If NEXT_PUBLIC_ADMIN_BYPASS is set to 'true', allow all access
     if (process.env.NEXT_PUBLIC_ADMIN_BYPASS === 'true') {
-      console.log('Admin access: Bypassed (development mode)')
       return true
     }
 
@@ -62,12 +61,10 @@ export async function isAdmin(): Promise<boolean> {
       }
     } catch (dbError) {
       // Table might not exist yet, that's okay
-      console.log('admin_users table not found or error:', dbError)
     }
 
     return false
   } catch (error) {
-    console.error('Error checking admin status:', error)
     return false
   }
 }
@@ -107,7 +104,6 @@ export async function isSuperAdmin(): Promise<boolean> {
 
     return false
   } catch (error) {
-    console.error('Error checking super admin status:', error)
     return false
   }
 }
@@ -142,7 +138,6 @@ export async function getAdminUserIds(): Promise<string[]> {
       }
   } catch (error) {
     // Table might not exist yet
-    console.log('Could not fetch admin users from database:', error)
   }
 
   return envAdminIds

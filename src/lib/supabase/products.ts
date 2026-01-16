@@ -3,9 +3,6 @@ import { Product } from '@/types/product.types'
 
 // Transform Supabase product to match your Product type
 function transformProduct(dbProduct: any): Product {
-  console.log('🔄 Transforming product:', dbProduct.id)
-  console.log('🔄 Variants in transform:', dbProduct.variants)
-  
   // Get primary image
   const primaryImage = dbProduct.images?.find((img: any) => img.is_primary) || dbProduct.images?.[0]
   const imageUrl = primaryImage?.image_url || '/images/placeholder.png'
@@ -26,8 +23,6 @@ function transformProduct(dbProduct: any): Product {
   }
   
   const variants = dbProduct.variants || []
-  console.log('🔄 Final variants array:', variants)
-  console.log('🔄 Variants length:', variants.length)
   
   return {
     id: dbProduct.id,
@@ -44,7 +39,6 @@ function transformProduct(dbProduct: any): Product {
 // Get new arrivals products
 export async function getNewArrivals(limit: number = 4, offset: number = 0): Promise<Product[]> {
   try {
-    console.log('📦 Fetching new arrivals...')
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -64,14 +58,11 @@ export async function getNewArrivals(limit: number = 4, offset: number = 0): Pro
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('❌ Error fetching new arrivals:', error)
       return []
     }
 
-    console.log('✅ New arrivals fetched:', data?.length || 0, 'products')
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('❌ Exception fetching new arrivals:', error)
     return []
   }
 }
@@ -98,13 +89,11 @@ export async function getTopSelling(limit: number = 4, offset: number = 0): Prom
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('Error fetching top selling:', error)
       return []
     }
 
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('Exception fetching top selling:', error)
     return []
   }
 }
@@ -112,7 +101,6 @@ export async function getTopSelling(limit: number = 4, offset: number = 0): Prom
 // Get on sale products (products with discounts)
 export async function getOnSaleProducts(limit: number = 10, offset: number = 0): Promise<Product[]> {
   try {
-    console.log('📦 Fetching on sale products...')
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -133,14 +121,11 @@ export async function getOnSaleProducts(limit: number = 10, offset: number = 0):
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('❌ Error fetching on sale products:', error)
       return []
     }
 
-    console.log('✅ On sale products fetched:', data?.length || 0, 'products')
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('❌ Exception fetching on sale products:', error)
     return []
   }
 }
@@ -148,7 +133,6 @@ export async function getOnSaleProducts(limit: number = 10, offset: number = 0):
 // Get all products (for shop page)
 export async function getAllProducts(limit: number = 10, offset: number = 0): Promise<Product[]> {
   try {
-    console.log('📦 Fetching all products...')
     const { data, error } = await supabase
       .from('products')
       .select(`
@@ -167,21 +151,17 @@ export async function getAllProducts(limit: number = 10, offset: number = 0): Pr
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('❌ Error fetching products:', error)
       return []
     }
 
-    console.log('✅ Products fetched:', data?.length || 0, 'products')
     return (data || []).map(transformProduct)
   } catch (error) {
-    console.error('❌ Exception fetching products:', error)
     return []
   }
 }
 
 // Get product by ID
 export async function getProductById(id: string): Promise<Product | null> {
-  console.log('🔍 Fetching product by ID:', id)
   const { data, error } = await supabase
     .from('products')
     .select(`
@@ -200,17 +180,10 @@ export async function getProductById(id: string): Promise<Product | null> {
     .single()
 
   if (error) {
-    console.error('❌ Error fetching product:', error)
     return null
   }
 
-  console.log('📦 Raw product data from DB:', data)
-  console.log('🎨 Variants count:', data?.variants?.length || 0)
-  console.log('🎨 Variants data:', JSON.stringify(data?.variants, null, 2))
-
   const transformed = transformProduct(data)
-  console.log('✅ Transformed product:', transformed)
-  console.log('✅ Transformed variants:', transformed.variants)
 
   return transformed
 }
@@ -235,7 +208,6 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .single()
 
   if (error) {
-    console.error('Error fetching product by slug:', error)
     return null
   }
 
@@ -256,7 +228,6 @@ export async function getRelatedProducts(categoryId: string, excludeId: string, 
     .limit(limit)
 
   if (error) {
-    console.error('Error fetching related products:', error)
     return []
   }
 

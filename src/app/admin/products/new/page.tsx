@@ -230,16 +230,10 @@ export default function AddProductPage() {
       }
 
       // Create variants
-      console.log('🔄 Admin - Creating variants for product:', productId)
-      console.log('🔄 Admin - Variants to create:', variants)
-      console.log('🔄 Admin - Variants count:', variants.length)
-      
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i]
-        console.log(`🔄 Admin - Processing variant ${i + 1}:`, variant)
         
         if (variant.color_id && variant.size_id) {
-          console.log(`✅ Admin - Variant ${i + 1} has color and size, saving...`)
           const variantData = {
             product_id: productId,
             color_id: variant.color_id,
@@ -248,26 +242,13 @@ export default function AddProductPage() {
             price_override: variant.price_override ? parseFloat(variant.price_override) : null,
             is_active: variant.is_active,
           }
-          console.log(`💾 Admin - Saving variant ${i + 1} with data:`, variantData)
           
-          const result = await upsertVariant(null, variantData)
-          console.log(`📦 Admin - Variant ${i + 1} save result:`, result)
-          
-          if (result.success) {
-            console.log(`✅ Admin - Variant ${i + 1} saved successfully! ID:`, result.variantId)
-          } else {
-            console.error(`❌ Admin - Variant ${i + 1} save failed:`, result.error)
-          }
-        } else {
-          console.log(`⚠️ Admin - Variant ${i + 1} skipped (missing color_id or size_id)`)
+          await upsertVariant(null, variantData)
         }
       }
-      
-      console.log('✅ Admin - All variants processed')
 
       router.push("/admin/products");
     } catch (error) {
-      console.error("Error creating product:", error);
       alert("Failed to create product");
       setLoading(false);
     }

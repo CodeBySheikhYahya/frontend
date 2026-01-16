@@ -41,7 +41,6 @@ export default function AdminOrdersPage() {
       const data = await getAllAdminOrders(statusFilter);
       setOrders(data);
     } catch (error) {
-      console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +61,6 @@ export default function AdminOrdersPage() {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      console.error("Error updating order status:", error);
       alert("Failed to update order status");
     } finally {
       setUpdatingStatus(null);

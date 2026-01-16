@@ -54,13 +54,11 @@ export async function getAllAdminProducts(): Promise<AdminProduct[]> {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching products:', error)
       return []
     }
 
     return (data || []) as AdminProduct[]
   } catch (error) {
-    console.error('Exception fetching products:', error)
     return []
   }
 }
@@ -90,13 +88,11 @@ export async function getAdminProductById(id: string): Promise<AdminProduct | nu
       .single()
 
     if (error) {
-      console.error('Error fetching product:', error)
       return null
     }
 
     return data as AdminProduct
   } catch (error) {
-    console.error('Exception fetching product:', error)
     return null
   }
 }
@@ -309,13 +305,11 @@ export async function getCategories(): Promise<Array<{ id: string; name: string 
       .order('name')
 
     if (error) {
-      console.error('Error fetching categories:', error)
       return []
     }
 
     return (data || []) as Array<{ id: string; name: string }>
   } catch (error) {
-    console.error('Exception fetching categories:', error)
     return []
   }
 }
@@ -330,13 +324,11 @@ export async function getBrands(): Promise<Array<{ id: string; name: string }>> 
       .order('name')
 
     if (error) {
-      console.error('Error fetching brands:', error)
       return []
     }
 
     return (data || []) as Array<{ id: string; name: string }>
   } catch (error) {
-    console.error('Exception fetching brands:', error)
     return []
   }
 }
@@ -350,13 +342,11 @@ export async function getColors(): Promise<Array<{ id: string; name: string; hex
       .order('name')
 
     if (error) {
-      console.error('Error fetching colors:', error)
       return []
     }
 
     return (data || []) as Array<{ id: string; name: string; hex_code: string }>
   } catch (error) {
-    console.error('Exception fetching colors:', error)
     return []
   }
 }
@@ -370,13 +360,11 @@ export async function getSizes(): Promise<Array<{ id: string; name: string }>> {
       .order('display_order')
 
     if (error) {
-      console.error('Error fetching sizes:', error)
       return []
     }
 
     return (data || []) as Array<{ id: string; name: string }>
   } catch (error) {
-    console.error('Exception fetching sizes:', error)
     return []
   }
 }
@@ -390,8 +378,6 @@ export async function createColor(
     const trimmedName = name.trim()
     const trimmedHex = hexCode.trim()
     
-    console.log('🎨 Creating color:', { name: trimmedName, hexCode: trimmedHex })
-    
     // First, check if color already exists
     const { data: existingColor, error: checkError } = await supabase
       .from('colors')
@@ -400,13 +386,11 @@ export async function createColor(
       .maybeSingle()
 
     if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ Error checking existing color:', checkError)
       return { success: false, error: checkError.message }
     }
 
     // If color exists, return its ID
     if (existingColor) {
-      console.log('✅ Color already exists, using existing:', existingColor.id)
       return { success: true, colorId: existingColor.id }
     }
 
@@ -421,7 +405,6 @@ export async function createColor(
       .single()
 
     if (error) {
-      console.error('❌ Error creating color:', error)
       // If it's a duplicate key error, try to fetch the existing one
       if (error.code === '23505') {
         const { data: existing, error: fetchError } = await supabase
@@ -431,17 +414,14 @@ export async function createColor(
           .single()
         
         if (!fetchError && existing) {
-          console.log('✅ Found existing color after duplicate error:', existing.id)
           return { success: true, colorId: existing.id }
         }
       }
       return { success: false, error: error.message }
     }
 
-    console.log('✅ Color created successfully:', color.id)
     return { success: true, colorId: color.id }
   } catch (error: any) {
-    console.error('❌ Exception creating color:', error)
     return { success: false, error: error.message || 'Failed to create color' }
   }
 }
@@ -453,8 +433,6 @@ export async function createSize(
   try {
     const trimmedName = name.trim()
     
-    console.log('📏 Creating size:', trimmedName)
-    
     // First, check if size already exists
     const { data: existingSize, error: checkError } = await supabase
       .from('sizes')
@@ -463,13 +441,11 @@ export async function createSize(
       .maybeSingle()
 
     if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ Error checking existing size:', checkError)
       return { success: false, error: checkError.message }
     }
 
     // If size exists, return its ID
     if (existingSize) {
-      console.log('✅ Size already exists, using existing:', existingSize.id)
       return { success: true, sizeId: existingSize.id }
     }
 
@@ -484,7 +460,6 @@ export async function createSize(
       .single()
 
     if (error) {
-      console.error('❌ Error creating size:', error)
       // If it's a duplicate key error, try to fetch the existing one
       if (error.code === '23505') {
         const { data: existing, error: fetchError } = await supabase
@@ -494,17 +469,14 @@ export async function createSize(
           .single()
         
         if (!fetchError && existing) {
-          console.log('✅ Found existing size after duplicate error:', existing.id)
           return { success: true, sizeId: existing.id }
         }
       }
       return { success: false, error: error.message }
     }
 
-    console.log('✅ Size created successfully:', size.id)
     return { success: true, sizeId: size.id }
   } catch (error: any) {
-    console.error('❌ Exception creating size:', error)
     return { success: false, error: error.message || 'Failed to create size' }
   }
 }
@@ -524,11 +496,8 @@ export async function upsertVariant(
   data: VariantData
 ): Promise<{ success: boolean; variantId?: string; error?: string }> {
   try {
-    console.log('💾 upsertVariant - Called with:', { variantId, data })
-    
     if (variantId) {
       // Update existing variant
-      console.log('🔄 upsertVariant - Updating existing variant:', variantId)
       const { data: updated, error } = await supabase
         .from('product_variants')
         .update(data)
@@ -537,15 +506,12 @@ export async function upsertVariant(
         .single()
 
       if (error) {
-        console.error('❌ upsertVariant - Update error:', error)
         return { success: false, error: error.message }
       }
 
-      console.log('✅ upsertVariant - Variant updated successfully:', updated)
       return { success: true, variantId }
     } else {
       // Create new variant
-      console.log('🆕 upsertVariant - Creating new variant with data:', data)
       const { data: variant, error } = await supabase
         .from('product_variants')
         .insert(data)
@@ -553,17 +519,12 @@ export async function upsertVariant(
         .single()
 
       if (error) {
-        console.error('❌ upsertVariant - Insert error:', error)
-        console.error('❌ upsertVariant - Error details:', JSON.stringify(error, null, 2))
         return { success: false, error: error.message }
       }
 
-      console.log('✅ upsertVariant - Variant created successfully:', variant)
-      console.log('✅ upsertVariant - New variant ID:', variant.id)
       return { success: true, variantId: variant.id }
     }
   } catch (error: any) {
-    console.error('❌ upsertVariant - Exception:', error)
     return { success: false, error: error.message || 'Failed to save variant' }
   }
 }

@@ -40,7 +40,6 @@ export default function AdminDashboard() {
           .select("status, total_amount");
 
         if (ordersError) {
-          console.error("Error fetching orders:", ordersError);
         } else {
           const totalOrders = orders?.length || 0;
           const pendingOrders =
@@ -66,7 +65,6 @@ export default function AdminDashboard() {
           });
         }
       } catch (error) {
-        console.error("Error fetching dashboard stats:", error);
       } finally {
         setLoading(false);
       }

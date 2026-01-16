@@ -38,40 +38,10 @@ const shippingSchema = z.object({
   city: z.string().min(1, "City is required"),
   zipCode: z.string().min(1, "ZIP code is required"),
   country: z.string().min(1, "Country is required"),
-  // paymentMethod: z.enum(["cod", "bank_transfer", "easypaisa", "jazzcash", "payfast"]).optional(),
 });
 
 type ShippingFormData = z.infer<typeof shippingSchema>;
 
-// type PaymentMethod = "cod" | "bank_transfer" | "easypaisa" | "jazzcash" | "payfast";
-
-// const paymentMethods: { value: PaymentMethod; label: string; description: string }[] = [
-//   {
-//     value: "cod",
-//     label: "Cash on Delivery (COD)",
-//     description: "Pay when you receive your order",
-//   },
-//   {
-//     value: "bank_transfer",
-//     label: "Bank Transfer",
-//     description: "Transfer directly to our bank account",
-//   },
-//   {
-//     value: "easypaisa",
-//     label: "Easypaisa",
-//     description: "Pay using your Easypaisa wallet",
-//   },
-//   {
-//     value: "jazzcash",
-//     label: "JazzCash",
-//     description: "Pay using your JazzCash wallet",
-//   },
-//   {
-//     value: "payfast",
-//     label: "PayFast (Card Payment)",
-//     description: "Pay using credit or debit card",
-//   },
-// ];
 
 const CheckoutPage = () => {
   const { cart, adjustedTotalPrice, totalPrice } = useAppSelector(
@@ -88,7 +58,6 @@ const CheckoutPage = () => {
     city: "",
     zipCode: "",
     country: "Pakistan",
-    // paymentMethod: undefined,
   });
 
   // Get Pakistan cities
@@ -97,7 +66,6 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // const [isRedirectingToPayFast, setIsRedirectingToPayFast] = useState(false);
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -122,12 +90,6 @@ const CheckoutPage = () => {
     e.preventDefault();
     setSubmitError(null);
     
-    // Check payment method manually
-    // if (!shippingInfo.paymentMethod) {
-    //   setErrors({ ...errors, paymentMethod: "Please select a payment method" });
-    //   return;
-    // }
-    
     // Validate with Zod
     const result = shippingSchema.safeParse(shippingInfo);
     
@@ -146,115 +108,38 @@ const CheckoutPage = () => {
     setErrors({});
     
     // Handle COD orders
-    // if (shippingInfo.paymentMethod === "cod") {
-      setIsSubmitting(true);
-      
-      try {
-        const orderResult = await createCODOrder({
-          cartItems: cart.items,
-          shippingInfo: {
-            firstName: shippingInfo.firstName,
-            lastName: shippingInfo.lastName,
-            email: shippingInfo.email,
-            phone: shippingInfo.phone,
-            address: shippingInfo.address,
-            city: shippingInfo.city,
-            zipCode: shippingInfo.zipCode,
-            country: shippingInfo.country,
-          },
-          paymentMethod: "cod",
-          subtotal: totalPrice,
-          discountAmount: totalPrice - adjustedTotalPrice,
-          totalAmount: adjustedTotalPrice,
-        });
+    setIsSubmitting(true);
+    
+    try {
+      const orderResult = await createCODOrder({
+        cartItems: cart.items,
+        shippingInfo: {
+          firstName: shippingInfo.firstName,
+          lastName: shippingInfo.lastName,
+          email: shippingInfo.email,
+          phone: shippingInfo.phone,
+          address: shippingInfo.address,
+          city: shippingInfo.city,
+          zipCode: shippingInfo.zipCode,
+          country: shippingInfo.country,
+        },
+        paymentMethod: "cod",
+        subtotal: totalPrice,
+        discountAmount: totalPrice - adjustedTotalPrice,
+        totalAmount: adjustedTotalPrice,
+      });
 
-        if (orderResult.success && orderResult.orderNumber) {
-          // Redirect to order confirmation page
-          router.push(`/orders/confirmation?orderNumber=${orderResult.orderNumber}`);
-        } else {
-          setSubmitError(orderResult.error || "Failed to create order. Please try again.");
-          setIsSubmitting(false);
-        }
-      } catch (error: any) {
-        console.error("Error creating COD order:", error);
-        setSubmitError(error.message || "An unexpected error occurred. Please try again.");
+      if (orderResult.success && orderResult.orderNumber) {
+        // Redirect to order confirmation page
+        router.push(`/orders/confirmation?orderNumber=${orderResult.orderNumber}`);
+      } else {
+        setSubmitError(orderResult.error || "Failed to create order. Please try again.");
         setIsSubmitting(false);
       }
-    // } else if (shippingInfo.paymentMethod === "payfast") {
-    //   // Handle PayFast payments
-    //   setIsSubmitting(true);
-    //   setIsRedirectingToPayFast(true);
-    //   
-    //   try {
-    //     // Call API to initiate PayFast payment
-    //     const response = await fetch("/api/payfast/initiate", {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         cartItems: cart.items,
-    //         shippingInfo: {
-    //           firstName: shippingInfo.firstName,
-    //           lastName: shippingInfo.lastName,
-    //           email: shippingInfo.email,
-    //           phone: shippingInfo.phone,
-    //           address: shippingInfo.address,
-    //           city: shippingInfo.city,
-    //           zipCode: shippingInfo.zipCode,
-    //           country: shippingInfo.country,
-    //         },
-    //         subtotal: totalPrice,
-    //         discountAmount: totalPrice - adjustedTotalPrice,
-    //         totalAmount: adjustedTotalPrice,
-    //       }),
-    //     });
-
-    //     const result = await response.json();
-
-    //     if (!result.success) {
-    //       setSubmitError(result.error || "Failed to initiate payment. Please try again.");
-    //       setIsSubmitting(false);
-    //       setIsRedirectingToPayFast(false);
-    //       return;
-    //     }
-
-    //     // Create and submit form to PayFast
-    //     const form = document.createElement("form");
-    //     form.method = "POST";
-    //     form.action = result.paymentUrl;
-    //     form.style.display = "none";
-
-    //     // Add all payment data fields to form
-    //     // PayFast expects form fields, not URL-encoded string
-    //     Object.entries(result.paymentData).forEach(([key, value]) => {
-    //       if (value !== undefined && value !== null && value !== '') {
-    //         const input = document.createElement("input");
-    //         input.type = "hidden";
-    //         input.name = key;
-    //         input.value = String(value);
-    //         form.appendChild(input);
-    //       }
-    //     });
-
-    //     // Add form to body and submit
-    //     document.body.appendChild(form);
-    //     form.submit();
-
-    //     // Note: User will be redirected to PayFast, so we don't reset state here
-    //     // The form submission will navigate away from the page
-
-    //   } catch (error: any) {
-    //     console.error("Error initiating PayFast payment:", error);
-    //     setSubmitError(error.message || "An unexpected error occurred. Please try again.");
-    //     setIsSubmitting(false);
-    //     setIsRedirectingToPayFast(false);
-    //   }
-    // } else {
-    //   // Handle other payment methods (to be implemented)
-    //   console.log("Other payment methods not yet implemented:", shippingInfo.paymentMethod);
-    //   setSubmitError("This payment method is not yet available. Please use Cash on Delivery or PayFast.");
-    // }
+      } catch (error: any) {
+        setSubmitError(error.message || "An unexpected error occurred. Please try again.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -446,49 +331,6 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
-              {/* Payment Method Selection */}
-              {/* <div className="mt-8">
-                <h2 className={cn([integralCF.className, "text-xl md:text-2xl font-bold mb-4"])}>
-                  Payment Method
-                </h2>
-                <div className="space-y-3">
-                  {paymentMethods.map((method) => (
-                    <label
-                      key={method.value}
-                      className={cn(
-                        "flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all",
-                        shippingInfo.paymentMethod === method.value
-                          ? "border-black bg-black/5"
-                          : "border-black/10 bg-white hover:border-black/20"
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value={method.value}
-                        checked={shippingInfo.paymentMethod === method.value}
-                        onChange={(e) => {
-                          setShippingInfo({
-                            ...shippingInfo,
-                            paymentMethod: e.target.value as PaymentMethod,
-                          });
-                          if (errors.paymentMethod) {
-                            setErrors({ ...errors, paymentMethod: undefined });
-                          }
-                        }}
-                        className="mt-1 w-5 h-5 text-black border-2 border-black/20 focus:ring-2 focus:ring-black focus:ring-offset-2 cursor-pointer"
-                      />
-                      <div className="flex-1">
-                        <div className="font-semibold text-base mb-1">{method.label}</div>
-                        <div className="text-sm text-black/60">{method.description}</div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {errors.paymentMethod && (
-                  <p className="text-red-500 text-sm mt-2">{errors.paymentMethod}</p>
-                )}
-              </div> */}
             </form>
           </div>
 
@@ -558,13 +400,6 @@ const CheckoutPage = () => {
                   <p className="text-red-600 text-sm">{submitError}</p>
                 </div>
               )}
-              {/* {isRedirectingToPayFast && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-blue-600 text-sm">
-                    Redirecting to PayFast payment page...
-                  </p>
-                </div>
-              )} */}
               <Button
                 type="submit"
                 form="checkout-form"

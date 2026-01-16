@@ -61,7 +61,6 @@ export default function AdminOrderDetailsPage() {
       setPaymentStatus(data.payment_status);
       setNotes(data.notes || "");
     } catch (error) {
-      console.error("Error fetching order:", error);
       alert("Failed to load order");
     } finally {
       setLoading(false);
@@ -99,7 +98,6 @@ export default function AdminOrderDetailsPage() {
       await fetchOrder();
       alert("Order updated successfully");
     } catch (error) {
-      console.error("Error updating order:", error);
       alert("Failed to update order");
     } finally {
       setSaving(false);

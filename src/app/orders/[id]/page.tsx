@@ -58,61 +58,31 @@ const OrderDetailsPage = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       if (!orderId) {
-        console.error('❌ No order ID provided');
         setError("Order ID is required");
         setLoading(false);
         return;
       }
 
-      console.log('🚀 Starting to fetch order details...');
-      console.log('📝 Order ID:', orderId);
       setLoading(true);
       setError(null);
 
       try {
-        console.log('🔍 Calling getOrderDetailsById with ID:', orderId);
         const orderData = await getOrderDetailsById(orderId);
         
-        console.log('📦 Order data received:', orderData);
-        console.log('📦 Order data type:', typeof orderData);
-        console.log('📦 Order data is null?', orderData === null);
-        
         if (orderData) {
-          console.log('✅ Order found!');
-          console.log('📊 Order ID:', orderData.id);
-          console.log('📊 Order Number:', orderData.order_number);
-          console.log('📊 Items array:', orderData.items);
-          console.log('📊 Items count:', orderData.items?.length || 0);
-          console.log('📊 Items type:', Array.isArray(orderData.items));
-          
-          if (orderData.items && orderData.items.length > 0) {
-            console.log('✅ Order items found:', orderData.items.length);
-            console.log('📋 Order items details:', JSON.stringify(orderData.items, null, 2));
-          } else {
-            console.warn('⚠️ No order items found for this order');
-            console.warn('⚠️ Items value:', orderData.items);
-            console.warn('⚠️ Items length:', orderData.items?.length);
-          }
           setOrder(orderData);
         } else {
-          console.error('❌ Order not found - orderData is null');
           setError("Order not found");
         }
       } catch (err) {
-        console.error('❌ Exception caught while fetching order:', err);
-        console.error('❌ Error details:', JSON.stringify(err, null, 2));
         setError("Something went wrong. Please try again.");
       } finally {
-        console.log('🏁 Finished fetching order details');
         setLoading(false);
       }
     };
 
     if (mounted && orderId) {
-      console.log('✅ Component mounted and orderId exists, calling fetchOrder');
       fetchOrder();
-    } else {
-      console.log('⏳ Waiting for mount or orderId...', { mounted, orderId });
     }
   }, [mounted, orderId]);
 
@@ -144,16 +114,6 @@ const OrderDetailsPage = () => {
     });
   };
 
-  // Debug: Log order state (must be before early returns)
-  useEffect(() => {
-    if (order) {
-      console.log('🎯 Current order state:', {
-        hasOrder: !!order,
-        itemsCount: order.items?.length || 0,
-        items: order.items,
-      });
-    }
-  }, [order]);
 
   if (!mounted || loading) {
     return (

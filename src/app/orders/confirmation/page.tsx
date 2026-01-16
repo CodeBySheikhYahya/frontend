@@ -65,66 +65,27 @@ const OrderConfirmationPage = () => {
             </p>
           )}
           <p className="text-base text-black/60 mb-8 text-center">
-            {/* {order?.payment_method === "payfast" && order?.payment_status === "paid"
-              ? "Thank you for your payment! Your order has been confirmed and will be processed shortly."
-              : order?.payment_method === "payfast" && order?.payment_status === "pending"
-              ? "Your order has been received. We're waiting for payment confirmation from PayFast."
-              : "Thank you for your order! We've received your order and will process it shortly."} */}
             Thank you for your order! We've received your order and will process it shortly.
             {orderNumber && " You will receive a confirmation email shortly."}
           </p>
           <div className="bg-[#F0F0F0] rounded-lg p-6 mb-8 w-full">
             <h2 className="font-bold text-lg mb-4">What's Next?</h2>
             <ul className="space-y-2 text-black/70">
-              {/* {order?.payment_method === "payfast" && order?.payment_status === "paid" ? (
-                <>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">1.</span>
-                    <span>Your payment has been confirmed successfully.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">2.</span>
-                    <span>We'll prepare your order for shipment.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">3.</span>
-                    <span>You'll receive an email with tracking information once your order ships.</span>
-                  </li>
-                </>
-              ) : order?.payment_method === "payfast" && order?.payment_status === "pending" ? (
-                <>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">1.</span>
-                    <span>Your order is being processed. Payment confirmation is pending.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">2.</span>
-                    <span>Once payment is confirmed, we'll prepare your order for shipment.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">3.</span>
-                    <span>You'll receive an email confirmation once payment is verified.</span>
-                  </li>
-                </>
-              ) : ( */}
-                <>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">1.</span>
-                    <span>We'll prepare your order for shipment.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">2.</span>
-                    <span>You'll receive an email with tracking information once your order ships.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-bold">3.</span>
-                    <span>
-                      For Cash on Delivery orders, please have the exact amount ready when the delivery
-                      arrives.
-                    </span>
-                  </li>
-                </>
-              {/* )} */}
+              <li className="flex items-start gap-2">
+                <span className="font-bold">1.</span>
+                <span>We'll prepare your order for shipment.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold">2.</span>
+                <span>You'll receive an email with tracking information once your order ships.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-bold">3.</span>
+                <span>
+                  For Cash on Delivery orders, please have the exact amount ready when the delivery
+                  arrives.
+                </span>
+              </li>
             </ul>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full">

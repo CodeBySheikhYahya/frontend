@@ -135,7 +135,6 @@ export default function EditProductPage() {
         );
       }
     } catch (error) {
-      console.error("Error fetching product:", error);
       alert("Failed to load product");
     } finally {
       setLoading(false);
@@ -313,16 +312,10 @@ export default function EditProductPage() {
       }
 
       // Save variants
-      console.log('🔄 Admin Edit - Saving variants for product:', productId)
-      console.log('🔄 Admin Edit - Variants to save:', variants)
-      console.log('🔄 Admin Edit - Variants count:', variants.length)
-      
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i]
-        console.log(`🔄 Admin Edit - Processing variant ${i + 1}:`, variant)
         
         if (variant.color_id && variant.size_id) {
-          console.log(`✅ Admin Edit - Variant ${i + 1} has color and size, saving...`)
           const variantData = {
             product_id: productId,
             color_id: variant.color_id,
@@ -331,27 +324,13 @@ export default function EditProductPage() {
             price_override: variant.price_override ? parseFloat(variant.price_override) : null,
             is_active: variant.is_active,
           }
-          console.log(`💾 Admin Edit - Saving variant ${i + 1} with data:`, variantData)
-          console.log(`💾 Admin Edit - Variant ${i + 1} ID (update or create):`, variant.id || 'NEW')
           
-          const result = await upsertVariant(variant.id || null, variantData)
-          console.log(`📦 Admin Edit - Variant ${i + 1} save result:`, result)
-          
-          if (result.success) {
-            console.log(`✅ Admin Edit - Variant ${i + 1} saved successfully! ID:`, result.variantId)
-          } else {
-            console.error(`❌ Admin Edit - Variant ${i + 1} save failed:`, result.error)
-          }
-        } else {
-          console.log(`⚠️ Admin Edit - Variant ${i + 1} skipped (missing color_id or size_id)`)
+          await upsertVariant(variant.id || null, variantData)
         }
       }
-      
-      console.log('✅ Admin Edit - All variants processed')
 
       router.push("/admin/products");
     } catch (error) {
-      console.error("Error updating product:", error);
       alert("Failed to update product");
       setSaving(false);
     }

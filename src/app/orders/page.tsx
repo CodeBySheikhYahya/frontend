@@ -25,91 +25,54 @@ const OrdersPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🚀 Orders page component mounting...');
     setMounted(true);
     // Check if orderNumber comes from URL (from confirmation page)
     const urlOrderNumber = searchParams.get("orderNumber");
-    console.log('🔍 Checking URL params, orderNumber:', urlOrderNumber);
     if (urlOrderNumber) {
-      console.log('✅ Order number found in URL, setting and searching...');
       setOrderNumber(urlOrderNumber);
       handleSearch(urlOrderNumber);
-    } else {
-      console.log('ℹ️ No order number in URL');
     }
   }, [searchParams]);
 
   const handleSearch = async (searchValue?: string) => {
     const searchOrderNumber = searchValue || orderNumber.trim();
-    console.log('🔍 handleSearch called with:', { searchValue, orderNumber, searchOrderNumber });
     
     if (!searchOrderNumber) {
-      console.warn('⚠️ No order number provided');
       setError("Please enter an order number");
       return;
     }
 
-    console.log('🚀 Starting search for order number:', searchOrderNumber);
     setLoading(true);
     setError(null);
     setOrder(null);
 
     try {
-      console.log('📞 Calling getOrderByNumber with:', searchOrderNumber);
       const orderData = await getOrderByNumber(searchOrderNumber);
-      console.log('📦 Order data received from getOrderByNumber:', orderData);
-      console.log('📦 Order data type:', typeof orderData);
-      console.log('📦 Order data is null?', orderData === null);
       
       if (orderData) {
-        console.log('✅ Order found!');
-        console.log('📊 Order ID:', orderData.id);
-        console.log('📊 Order Number:', orderData.order_number);
-        console.log('📊 Order Status:', orderData.status);
-        console.log('📊 Order Total:', orderData.total_amount);
-        
         const orderState = {
           id: orderData.id,
           order_number: orderData.order_number,
           status: orderData.status,
           total_amount: orderData.total_amount,
         };
-        console.log('💾 Setting order state:', orderState);
         setOrder(orderState);
       } else {
-        console.error('❌ Order not found - orderData is null');
         setError("Order not found. Please check your order number.");
       }
     } catch (err) {
-      console.error('❌ Exception caught in handleSearch:', err);
-      console.error('❌ Error details:', JSON.stringify(err, null, 2));
       setError("Something went wrong. Please try again.");
     } finally {
-      console.log('🏁 Finished search, setting loading to false');
       setLoading(false);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('📝 Form submitted, calling handleSearch');
     handleSearch();
   };
 
-  // Debug: Log state changes
-  useEffect(() => {
-    console.log('📊 Orders page state:', {
-      mounted,
-      orderNumber,
-      loading,
-      hasOrder: !!order,
-      order: order,
-      error,
-    });
-  }, [mounted, orderNumber, loading, order, error]);
-
   if (!mounted) {
-    console.log('⏳ Component not mounted yet, returning null');
     return null;
   }
 
