@@ -16,22 +16,38 @@ import {
   createColor,
   createSize,
   upsertVariant,
+  createVariantWithAttributes,
+  createProductSpecification,
   generateSlug,
   type VariantData,
   type CreateProductData,
+  type DynamicVariantData,
+  type ProductSpecification,
 } from "@/lib/supabase/admin-products";
+import {
+  getCategoryAttributes,
+  type CategoryAttribute,
+} from "@/lib/supabase/admin-category-attributes";
+import {
+  getAttributeValues,
+  type AttributeValue,
+} from "@/lib/supabase/admin-attributes";
 import { ArrowLeft, Upload, X, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 interface VariantFormData {
-  color_id: string;
-  size_id: string;
-  stock_quantity: number;
-  price_override: string;
-  is_active: boolean;
+  // Legacy fields (for backward compatibility)
+  color_id?: string;
+  size_id?: string;
   newColorName?: string;
   newColorHex?: string;
   newSizeName?: string;
+  // Dynamic attributes
+  attributes: Record<string, string>; // attribute_id -> attribute_value_id
+  // Common fields
+  stock_quantity: number;
+  price_override: string;
+  is_active: boolean;
 }
 
 export default function AddProductPage() {
@@ -62,11 +78,20 @@ export default function AddProductPage() {
   // Variants
   const [variants, setVariants] = useState<VariantFormData[]>([]);
 
+  // Specifications
+  const [specifications, setSpecifications] = useState<
+    Array<{ key: string; value: string; order: number }>
+  >([]);
+
   // Options
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; parent_id: string | null; parent_name?: string | null }>>([]);
   const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
   const [colors, setColors] = useState<Array<{ id: string; name: string; hex_code: string }>>([]);
   const [sizes, setSizes] = useState<Array<{ id: string; name: string }>>([]);
+  
+  // Dynamic attributes
+  const [categoryAttributes, setCategoryAttributes] = useState<CategoryAttribute[]>([]);
+  const [attributeValues, setAttributeValues] = useState<Record<string, AttributeValue[]>>({});
 
   useEffect(() => {
     fetchOptions();
@@ -77,6 +102,41 @@ export default function AddProductPage() {
       setSlug(generateSlug(title));
     }
   }, [title, slug]);
+
+  // Fetch category attributes when category changes
+  useEffect(() => {
+    console.log("Category ID changed:", categoryId);
+    if (categoryId) {
+      fetchCategoryAttributes();
+    } else {
+      console.log("No category selected, clearing attributes");
+      setCategoryAttributes([]);
+      setAttributeValues({});
+    }
+  }, [categoryId]);
+
+  const fetchCategoryAttributes = async () => {
+    if (!categoryId) return;
+    
+    try {
+      console.log("Fetching category attributes for category:", categoryId);
+      const attrs = await getCategoryAttributes(categoryId);
+      console.log("Fetched category attributes:", attrs);
+      setCategoryAttributes(attrs);
+      
+      // Fetch values for each attribute
+      const valuesMap: Record<string, AttributeValue[]> = {};
+      for (const attr of attrs) {
+        const values = await getAttributeValues(attr.attribute_id);
+        valuesMap[attr.attribute_id] = values;
+        console.log(`Attribute ${attr.attribute?.display_name} values:`, values);
+      }
+      setAttributeValues(valuesMap);
+      console.log("All attribute values:", valuesMap);
+    } catch (error) {
+      console.error("Error fetching category attributes:", error);
+    }
+  };
 
   const fetchOptions = async () => {
     const [cats, brs, cols, szs] = await Promise.all([
@@ -122,17 +182,27 @@ export default function AddProductPage() {
   };
 
   const addVariant = () => {
+    console.log("Adding new variant");
+    console.log("Current category attributes:", categoryAttributes);
+    // Initialize attributes object for dynamic attributes
+    const initialAttributes: Record<string, string> = {};
+    if (categoryAttributes.length > 0) {
+      categoryAttributes.forEach((ca) => {
+        initialAttributes[ca.attribute_id] = "";
+      });
+    }
+    console.log("Initial attributes for new variant:", initialAttributes);
+    
     setVariants([
       ...variants,
       {
-        color_id: "",
-        size_id: "",
+        attributes: initialAttributes,
         stock_quantity: 0,
         price_override: "",
         is_active: true,
-        newColorName: "",
-        newColorHex: "",
-        newSizeName: "",
+        // Legacy fields (for backward compatibility)
+        color_id: categoryAttributes.length === 0 ? "" : undefined,
+        size_id: categoryAttributes.length === 0 ? "" : undefined,
       },
     ]);
   };
@@ -180,7 +250,11 @@ export default function AddProductPage() {
 
   const updateVariant = (index: number, field: keyof VariantFormData, value: any) => {
     const updated = [...variants];
+    if (field === "attributes") {
+      updated[index] = { ...updated[index], attributes: value };
+    } else {
     updated[index] = { ...updated[index], [field]: value };
+    }
     setVariants(updated);
   };
 
@@ -230,20 +304,85 @@ export default function AddProductPage() {
       }
 
       // Create variants
+      console.log("=== VARIANT CREATION DEBUG ===");
+      console.log("Total variants to create:", variants.length);
+      console.log("Category attributes:", categoryAttributes);
+      console.log("Category ID:", categoryId);
+      
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i]
+        console.log(`\n--- Variant ${i + 1} ---`);
+        console.log("Variant data:", variant);
+        console.log("Variant attributes:", variant.attributes);
         
-        if (variant.color_id && variant.size_id) {
-          const variantData = {
-            product_id: productId,
-            color_id: variant.color_id,
-            size_id: variant.size_id,
-            stock_quantity: variant.stock_quantity,
-            price_override: variant.price_override ? parseFloat(variant.price_override) : null,
-            is_active: variant.is_active,
-          }
+        // Use dynamic attributes if category has attributes assigned
+        if (categoryAttributes.length > 0) {
+          console.log("Using dynamic attributes system");
+          // Check if all required attributes are filled
+          const requiredAttrs = categoryAttributes.filter(ca => ca.is_required);
+          console.log("Required attributes:", requiredAttrs);
           
-          await upsertVariant(null, variantData)
+          const allRequiredFilled = requiredAttrs.every(ca => 
+            variant.attributes[ca.attribute_id] && variant.attributes[ca.attribute_id] !== ""
+          );
+          
+          console.log("All required attributes filled?", allRequiredFilled);
+          
+          if (allRequiredFilled) {
+            const dynamicVariantData: DynamicVariantData = {
+              product_id: productId,
+              stock_quantity: variant.stock_quantity,
+              price_override: variant.price_override ? parseFloat(variant.price_override) : null,
+              is_active: variant.is_active,
+              attributes: Object.entries(variant.attributes)
+                .filter(([_, valueId]) => valueId && valueId !== "")
+                .map(([attrId, valueId]) => ({
+                  attribute_id: attrId,
+                  attribute_value_id: valueId,
+                })),
+            };
+            
+            console.log("Creating variant with data:", dynamicVariantData);
+            const variantResult = await createVariantWithAttributes(dynamicVariantData);
+            console.log("Variant creation result:", variantResult);
+          } else {
+            console.log("❌ Skipping variant - required attributes not filled");
+            const missingAttrs = requiredAttrs.filter(ca => 
+              !variant.attributes[ca.attribute_id] || variant.attributes[ca.attribute_id] === ""
+            );
+            console.log("Missing attributes:", missingAttrs);
+          }
+        } else {
+          console.log("Using legacy color_id/size_id system");
+          // Fallback to legacy color_id/size_id system
+          if (variant.color_id && variant.size_id) {
+            const variantData = {
+              product_id: productId,
+              color_id: variant.color_id,
+              size_id: variant.size_id,
+              stock_quantity: variant.stock_quantity,
+              price_override: variant.price_override ? parseFloat(variant.price_override) : null,
+              is_active: variant.is_active,
+            }
+            
+            console.log("Creating legacy variant:", variantData);
+            await upsertVariant(null, variantData)
+          } else {
+            console.log("❌ Skipping variant - missing color_id or size_id");
+          }
+        }
+      }
+      
+      console.log("=== END VARIANT CREATION DEBUG ===\n");
+
+      // Create specifications
+      for (const spec of specifications) {
+        if (spec.key && spec.value) {
+          await createProductSpecification(productId, {
+            spec_key: spec.key,
+            spec_value: spec.value,
+            display_order: spec.order,
+          });
         }
       }
 
@@ -423,7 +562,7 @@ export default function AddProductPage() {
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name}
+                    {cat.parent_name ? `${cat.parent_name} > ${cat.name}` : cat.name}
                   </option>
                 ))}
               </select>
@@ -527,22 +666,125 @@ export default function AddProductPage() {
 
           {variants.length === 0 ? (
             <p className="text-gray-500 text-sm">
-              No variants added. Click "Add Variant" to add color/size combinations.
+              {categoryAttributes.length > 0
+                ? "No variants added. Click 'Add Variant' to add attribute combinations."
+                : "No variants added. Click 'Add Variant' to add color/size combinations."}
             </p>
           ) : (
             <div className="space-y-4">
               {variants.map((variant, index) => (
                 <div
                   key={index}
-                  className="p-4 border border-gray-200 rounded-lg grid grid-cols-1 md:grid-cols-5 gap-4"
+                  className={cn(
+                    "p-4 border border-gray-200 rounded-lg grid gap-4",
+                    categoryAttributes.length > 0
+                      ? `grid-cols-1 md:grid-cols-${Math.min(categoryAttributes.length + 3, 6)}`
+                      : "grid-cols-1 md:grid-cols-5"
+                  )}
                 >
+                  {/* Dynamic Attribute Fields */}
+                  {categoryAttributes.length > 0 ? (
+                    categoryAttributes.map((catAttr) => {
+                      const attr = catAttr.attribute;
+                      if (!attr) return null;
+                      
+                      const values = attributeValues[catAttr.attribute_id] || [];
+                      
+                      return (
+                        <div key={catAttr.attribute_id}>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            {attr.display_name}
+                            {catAttr.is_required && " *"}
+                          </label>
+                          {attr.attribute_type === "select" && values.length > 0 ? (
+                            <select
+                              className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0"
+                              value={variant.attributes[catAttr.attribute_id] || ""}
+                              onChange={(e) => {
+                                console.log(`Variant ${index} - ${attr.display_name} changed:`, e.target.value);
+                                const updated = { ...variant.attributes };
+                                updated[catAttr.attribute_id] = e.target.value;
+                                updateVariant(index, "attributes", updated);
+                              }}
+                              required={catAttr.is_required}
+                            >
+                              <option value="">Select {attr.display_name}</option>
+                              {values
+                                .filter((v) => v.is_active)
+                                .map((value) => (
+                                  <option key={value.id} value={value.id}>
+                                    {value.display_value || value.value}
+                                  </option>
+                                ))}
+                            </select>
+                          ) : attr.attribute_type === "color" && values.length > 0 ? (
+                            <div>
+                              <select
+                                className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
+                                value={variant.attributes[catAttr.attribute_id] || ""}
+                                onChange={(e) => {
+                                  const updated = { ...variant.attributes };
+                                  updated[catAttr.attribute_id] = e.target.value;
+                                  updateVariant(index, "attributes", updated);
+                                }}
+                                required={catAttr.is_required}
+                              >
+                                <option value="">Select {attr.display_name}</option>
+                                {values
+                                  .filter((v) => v.is_active)
+                                  .map((value) => (
+                                    <option key={value.id} value={value.id}>
+                                      {value.display_value || value.value}
+                                    </option>
+                                  ))}
+                              </select>
+                              {variant.attributes[catAttr.attribute_id] && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  {values
+                                    .find((v) => v.id === variant.attributes[catAttr.attribute_id])
+                                    ?.hex_code && (
+                                    <div
+                                      className="w-6 h-6 rounded border border-gray-300"
+                                      style={{
+                                        backgroundColor:
+                                          values.find(
+                                            (v) => v.id === variant.attributes[catAttr.attribute_id]
+                                          )?.hex_code || "#000",
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <InputGroup className="bg-[#F0F0F0]">
+                              <InputGroup.Input
+                                type={attr.attribute_type === "number" ? "number" : "text"}
+                                placeholder={`Enter ${attr.display_name}`}
+                                value={variant.attributes[catAttr.attribute_id] || ""}
+                                onChange={(e) => {
+                                  const updated = { ...variant.attributes };
+                                  updated[catAttr.attribute_id] = e.target.value;
+                                  updateVariant(index, "attributes", updated);
+                                }}
+                                required={catAttr.is_required}
+                                className="text-sm"
+                              />
+                            </InputGroup>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <>
+                      {/* Legacy Color Field */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Color *
                     </label>
                     <select
                       className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
-                      value={variant.color_id === "new" ? "new" : variant.color_id}
+                          value={variant.color_id === "new" ? "new" : variant.color_id || ""}
                       onChange={(e) => {
                         if (e.target.value === "new") {
                           updateVariant(index, "color_id", "new");
@@ -604,13 +846,14 @@ export default function AddProductPage() {
                     )}
                   </div>
 
+                      {/* Legacy Size Field */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       Size *
                     </label>
                     <select
                       className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
-                      value={variant.size_id === "new" ? "new" : variant.size_id}
+                          value={variant.size_id === "new" ? "new" : variant.size_id || ""}
                       onChange={(e) => {
                         if (e.target.value === "new") {
                           updateVariant(index, "size_id", "new");
@@ -652,6 +895,8 @@ export default function AddProductPage() {
                       </div>
                     )}
                   </div>
+                    </>
+                  )}
 
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -704,6 +949,88 @@ export default function AddProductPage() {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Product Specifications */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={cn([integralCF.className, "text-xl font-bold"])}>
+              Product Specifications
+            </h2>
+            <Button
+              type="button"
+              onClick={() =>
+                setSpecifications([
+                  ...specifications,
+                  { key: "", value: "", order: specifications.length },
+                ])
+              }
+              variant="outline"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Specification
+            </Button>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            Add product details like Material, Care instructions, etc.
+          </p>
+          {specifications.length === 0 ? (
+            <p className="text-gray-500 text-sm">
+              No specifications added. Click "Add Specification" to add details.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {specifications.map((spec, index) => (
+                <div
+                  key={index}
+                  className="flex gap-3 items-start p-3 border border-gray-200 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <InputGroup className="bg-[#F0F0F0] mb-2">
+                      <InputGroup.Input
+                        type="text"
+                        placeholder="Spec Key (e.g., Material, Care)"
+                        value={spec.key}
+                        onChange={(e) => {
+                          const updated = [...specifications];
+                          updated[index].key = e.target.value;
+                          setSpecifications(updated);
+                        }}
+                        className="text-sm"
+                      />
+                    </InputGroup>
+                    <InputGroup className="bg-[#F0F0F0]">
+                      <InputGroup.Input
+                        type="text"
+                        placeholder="Spec Value (e.g., 100% Cotton)"
+                        value={spec.value}
+                        onChange={(e) => {
+                          const updated = [...specifications];
+                          updated[index].value = e.target.value;
+                          setSpecifications(updated);
+                        }}
+                        className="text-sm"
+                      />
+                    </InputGroup>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setSpecifications(
+                        specifications.filter((_, i) => i !== index)
+                      )
+                    }
+                    className="text-red-600 hover:text-red-700 mt-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>

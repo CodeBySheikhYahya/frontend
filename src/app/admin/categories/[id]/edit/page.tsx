@@ -1,0 +1,288 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { integralCF } from "@/styles/fonts";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import InputGroup from "@/components/ui/input-group";
+import {
+  getCategoryById,
+  updateCategory,
+  getAllCategories,
+  generateCategorySlug,
+  type Category,
+} from "@/lib/supabase/admin-categories";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+
+export default function EditCategoryPage() {
+  const router = useRouter();
+  const params = useParams();
+  const categoryId = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Form data
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [isActive, setIsActive] = useState(true);
+
+  // Options
+  const [parentCategories, setParentCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+
+  useEffect(() => {
+    fetchCategory();
+    fetchParentCategories();
+  }, [categoryId]);
+
+  useEffect(() => {
+    if (name && !slug) {
+      setSlug(generateCategorySlug(name));
+    }
+  }, [name, slug]);
+
+  const fetchCategory = async () => {
+    setLoading(true);
+    try {
+      const category = await getCategoryById(categoryId);
+      if (category) {
+        setName(category.name);
+        setSlug(category.slug);
+        setDescription(category.description || "");
+        setImageUrl(category.image_url || "");
+        setParentId(category.parent_id || "");
+        setDisplayOrder(category.display_order);
+        setIsActive(category.is_active);
+      } else {
+        alert("Category not found");
+        router.push("/admin/categories");
+      }
+    } catch (error) {
+      console.error("Error fetching category:", error);
+      alert("Failed to load category");
+      router.push("/admin/categories");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchParentCategories = async () => {
+    try {
+      const categories = await getAllCategories();
+      // Filter out current category and its children to prevent circular references
+      const filtered = categories
+        .filter((c) => c.id !== categoryId)
+        .map((c) => ({ id: c.id, name: c.name }));
+      setParentCategories(filtered);
+    } catch (error) {
+      console.error("Error fetching parent categories:", error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      const result = await updateCategory(categoryId, {
+        name,
+        slug: slug || generateCategorySlug(name),
+        description: description || undefined,
+        image_url: imageUrl || undefined,
+        parent_id: parentId || null,
+        display_order: displayOrder,
+        is_active: isActive,
+      });
+
+      if (result.success) {
+        router.push("/admin/categories");
+        router.refresh();
+      } else {
+        alert(`Error: ${result.error}`);
+        setSaving(false);
+      }
+    } catch (error: any) {
+      alert(`Failed to update category: ${error.message}`);
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-600">Loading category...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-8">
+        <Link href="/admin/categories">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Categories
+          </Button>
+        </Link>
+        <h1 className={cn([integralCF.className, "text-3xl font-bold"])}>
+          Edit Category
+        </h1>
+        <p className="text-gray-600 mt-2">Update category information</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <div>
+            <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
+              Basic Information
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category Name *
+                </label>
+                <InputGroup className="bg-[#F0F0F0]">
+                  <InputGroup.Input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="e.g., Clothing, Bags, Perfumes"
+                  />
+                </InputGroup>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Slug
+                </label>
+                <InputGroup className="bg-[#F0F0F0]">
+                  <InputGroup.Input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="Auto-generated from name"
+                  />
+                </InputGroup>
+                <p className="text-xs text-gray-500 mt-1">
+                  URL-friendly version of the name (auto-generated if left empty)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Category description..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image URL
+                </label>
+                <InputGroup className="bg-[#F0F0F0]">
+                  <InputGroup.Input
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </InputGroup>
+                <p className="text-xs text-gray-500 mt-1">URL to category image</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Settings */}
+          <div>
+            <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
+              Category Settings
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Parent Category
+                </label>
+                <select
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="">None (Top Level)</option>
+                  {parentCategories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional: Make this a subcategory of another category
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Display Order
+                </label>
+                <InputGroup className="bg-[#F0F0F0]">
+                  <InputGroup.Input
+                    type="number"
+                    value={displayOrder.toString()}
+                    onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+                  />
+                </InputGroup>
+                <p className="text-xs text-gray-500 mt-1">
+                  Lower numbers appear first (0, 1, 2, ...)
+                </p>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+                />
+                <label htmlFor="isActive" className="ml-2 text-sm text-gray-700">
+                  Active (visible on store)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Buttons */}
+          <div className="flex items-center justify-end gap-4 pt-4 border-t border-gray-200">
+            <Link href="/admin/categories">
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </Link>
+            <Button
+              type="submit"
+              className="bg-black text-white hover:bg-black/90"
+              disabled={saving || !name}
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}

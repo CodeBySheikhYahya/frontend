@@ -13,6 +13,9 @@ import {
   LogOut,
   Menu,
   X,
+  Folder,
+  Tag,
+  Layout,
 } from "lucide-react";
 import { isAdmin } from "@/lib/supabase/admin";
 import { supabase } from "@/lib/supabase";
@@ -24,9 +27,24 @@ const adminNavItems = [
     icon: LayoutDashboard,
   },
   {
+    label: "Categories",
+    href: "/admin/categories",
+    icon: Folder,
+  },
+  {
+    label: "Attributes",
+    href: "/admin/attributes",
+    icon: Tag,
+  },
+  {
     label: "Products",
     href: "/admin/products",
     icon: Package,
+  },
+  {
+    label: "Product Tabs",
+    href: "/admin/tabs",
+    icon: Layout,
   },
   {
     label: "Orders",

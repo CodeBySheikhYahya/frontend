@@ -1,26 +1,54 @@
 import BreadcrumbShop from "@/components/shop-page/BreadcrumbShop";
+import ShopFilters from "@/components/shop-page/ShopFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiSliders } from "react-icons/fi";
 import ProductCard from "@/components/common/ProductCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
-import { getAllProducts, getNewArrivals, getTopSelling, getOnSaleProducts } from "@/lib/supabase/products";
+import { getAllProducts, getNewArrivals, getTopSelling, getOnSaleProducts, getFilteredProducts } from "@/lib/supabase/products";
 
 // Make this page dynamic to avoid build-time Supabase calls
 export const dynamic = 'force-dynamic';
 
 interface ShopPageProps {
-  searchParams: { filter?: string };
+  searchParams: { 
+    filter?: string;
+    category?: string;
+    [key: string]: string | undefined;
+  };
 }
 
 const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
   const filter = searchParams?.filter || 'all';
+  const categoryId = searchParams?.category;
   const limit = 9;
   const offset = 0;
+
+  // Parse attribute filters from URL params
+  const attributeFilters: Record<string, string[]> = {};
+  Object.keys(searchParams).forEach((key) => {
+    if (key.startsWith('attr_')) {
+      const attrId = key.replace('attr_', '');
+      const valueIds = searchParams[key]?.split(',').filter(Boolean) || [];
+      if (valueIds.length > 0) {
+        attributeFilters[attrId] = valueIds;
+      }
+    }
+  });
 
   // Fetch products based on filter
   let products;
   let pageTitle = 'All Products';
 
+  // If category or attribute filters are applied, use filtered products
+  if (categoryId || Object.keys(attributeFilters).length > 0) {
+    products = await getFilteredProducts({
+      categoryId: categoryId,
+      attributeFilters: Object.keys(attributeFilters).length > 0 ? attributeFilters : undefined,
+      limit,
+      offset,
+    });
+    pageTitle = 'Filtered Products';
+  } else {
   switch (filter) {
     case 'new-arrivals':
       products = await getNewArrivals(limit, offset);
@@ -37,6 +65,7 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
     default:
       products = await getAllProducts(limit, offset);
       pageTitle = 'All Products';
+    }
   }
 
   return (
@@ -44,7 +73,14 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
       <div className="max-w-frame mx-auto px-4 xl:px-0">
         <hr className="h-[1px] border-t-black/10 mb-5 sm:mb-6" />
         <BreadcrumbShop />
-        <div className="flex flex-col w-full space-y-5">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Filters Sidebar */}
+          <div className="lg:w-64 flex-shrink-0">
+            <ShopFilters />
+          </div>
+          
+          {/* Products Grid */}
+          <div className="flex-1 flex flex-col w-full space-y-5">
           <div className="flex flex-col lg:flex-row lg:justify-between">
             <div className="flex items-center justify-between">
               <h1 className="font-bold text-2xl md:text-[32px] capitalize">{pageTitle}</h1>
@@ -121,6 +157,7 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
 
             <PaginationNext href="#" className="border border-black/10" />
           </Pagination>
+          </div>
         </div>
       </div>
     </main>

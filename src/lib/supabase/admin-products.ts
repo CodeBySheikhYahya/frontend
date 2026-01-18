@@ -296,19 +296,42 @@ export async function deleteProductImage(
 }
 
 // Get all categories
-export async function getCategories(): Promise<Array<{ id: string; name: string }>> {
+export async function getCategories(): Promise<Array<{ id: string; name: string; parent_id: string | null; parent_name?: string | null }>> {
   try {
-    const { data, error } = await supabase
+    // Get all active categories with parent info
+    const { data: allCategories, error: allError } = await supabase
       .from('categories')
-      .select('id, name')
+      .select('id, name, parent_id, parent:categories!parent_id(id, name)')
       .eq('is_active', true)
       .order('name')
 
-    if (error) {
+    if (allError) {
       return []
     }
 
-    return (data || []) as Array<{ id: string; name: string }>
+    if (!allCategories) return []
+
+    // Get all category IDs that have children (parent categories)
+    // Find categories that are referenced as parent_id by other categories
+    const { data: categoriesWithChildren } = await supabase
+      .from('categories')
+      .select('parent_id')
+      .not('parent_id', 'is', null)
+      .eq('is_active', true)
+
+    const parentIds = new Set(categoriesWithChildren?.map(c => c.parent_id).filter(Boolean) || [])
+
+    // Filter to only return child categories (categories that don't have children)
+    const childCategories = allCategories
+      .filter(cat => !parentIds.has(cat.id))
+      .map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        parent_id: cat.parent_id,
+        parent_name: (cat.parent as any)?.name || null,
+      }))
+
+    return childCategories
   } catch (error) {
     return []
   }
@@ -529,6 +552,83 @@ export async function upsertVariant(
   }
 }
 
+// Create variant with dynamic attributes
+export interface DynamicVariantData {
+  product_id: string
+  stock_quantity: number
+  price_override?: number | null
+  is_active?: boolean
+  attributes: Array<{
+    attribute_id: string
+    attribute_value_id: string
+  }>
+}
+
+export async function createVariantWithAttributes(
+  data: DynamicVariantData
+): Promise<{ success: boolean; variantId?: string; error?: string }> {
+  try {
+    console.log("=== createVariantWithAttributes CALLED ===");
+    console.log("Input data:", data);
+    console.log("Attributes to assign:", data.attributes);
+    
+    // First create the variant (without color_id/size_id for now)
+    console.log("Creating variant in database...");
+    const { data: variant, error: variantError } = await supabase
+      .from('product_variants')
+      .insert({
+        product_id: data.product_id,
+        stock_quantity: data.stock_quantity,
+        price_override: data.price_override || null,
+        is_active: data.is_active ?? true,
+        color_id: null, // Will use dynamic attributes instead
+        size_id: null, // Will use dynamic attributes instead
+      })
+      .select('id')
+      .single()
+
+    if (variantError || !variant) {
+      console.error("❌ Failed to create variant:", variantError);
+      return { success: false, error: variantError?.message || 'Failed to create variant' }
+    }
+
+    console.log("✅ Variant created successfully:", variant.id);
+
+    // Then create attribute associations
+    if (data.attributes.length > 0) {
+      console.log("Creating attribute associations...");
+      const variantAttributes = data.attributes.map(attr => ({
+        variant_id: variant.id,
+        attribute_id: attr.attribute_id,
+        attribute_value_id: attr.attribute_value_id,
+      }))
+
+      console.log("Variant attributes to insert:", variantAttributes);
+
+      const { error: attrError } = await supabase
+        .from('product_variant_attributes')
+        .insert(variantAttributes)
+
+      if (attrError) {
+        console.error("❌ Failed to create attribute associations:", attrError);
+        // Rollback variant creation
+        await supabase.from('product_variants').delete().eq('id', variant.id)
+        return { success: false, error: attrError.message }
+      }
+      
+      console.log("✅ Attribute associations created successfully");
+    } else {
+      console.log("⚠️ No attributes to assign");
+    }
+
+    console.log("=== createVariantWithAttributes SUCCESS ===\n");
+    return { success: true, variantId: variant.id }
+  } catch (error: any) {
+    console.error("❌ Exception in createVariantWithAttributes:", error);
+    return { success: false, error: error.message || 'Failed to create variant' }
+  }
+}
+
 // Delete variant
 export async function deleteVariant(
   variantId: string
@@ -546,6 +646,129 @@ export async function deleteVariant(
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete variant' }
+  }
+}
+
+// Product Specifications Management
+export interface ProductSpecification {
+  id: string
+  product_id: string
+  spec_key: string
+  spec_value: string
+  display_order: number
+  created_at: string
+}
+
+// Get product specifications
+export async function getProductSpecifications(
+  productId: string
+): Promise<ProductSpecification[]> {
+  try {
+    const { data, error } = await supabase
+      .from('product_specifications')
+      .select('*')
+      .eq('product_id', productId)
+      .order('display_order', { ascending: true })
+      .order('spec_key', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching product specifications:', error)
+      return []
+    }
+
+    return (data || []) as ProductSpecification[]
+  } catch (error) {
+    console.error('Error fetching product specifications:', error)
+    return []
+  }
+}
+
+// Create product specification
+export async function createProductSpecification(
+  productId: string,
+  specData: {
+    spec_key: string
+    spec_value: string
+    display_order?: number
+  }
+): Promise<{ success: boolean; data?: ProductSpecification; error?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from('product_specifications')
+      .insert({
+        product_id: productId,
+        spec_key: specData.spec_key,
+        spec_value: specData.spec_value,
+        display_order: specData.display_order ?? 0,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating product specification:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data as ProductSpecification }
+  } catch (error: any) {
+    console.error('Error creating product specification:', error)
+    return { success: false, error: error.message || 'Failed to create specification' }
+  }
+}
+
+// Update product specification
+export async function updateProductSpecification(
+  specId: string,
+  specData: {
+    spec_key?: string
+    spec_value?: string
+    display_order?: number
+  }
+): Promise<{ success: boolean; data?: ProductSpecification; error?: string }> {
+  try {
+    const updateData: any = {}
+    if (specData.spec_key !== undefined) updateData.spec_key = specData.spec_key
+    if (specData.spec_value !== undefined) updateData.spec_value = specData.spec_value
+    if (specData.display_order !== undefined) updateData.display_order = specData.display_order
+
+    const { data, error } = await supabase
+      .from('product_specifications')
+      .update(updateData)
+      .eq('id', specId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating product specification:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data: data as ProductSpecification }
+  } catch (error: any) {
+    console.error('Error updating product specification:', error)
+    return { success: false, error: error.message || 'Failed to update specification' }
+  }
+}
+
+// Delete product specification
+export async function deleteProductSpecification(
+  specId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('product_specifications')
+      .delete()
+      .eq('id', specId)
+
+    if (error) {
+      console.error('Error deleting product specification:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Error deleting product specification:', error)
+    return { success: false, error: error.message || 'Failed to delete specification' }
   }
 }
 

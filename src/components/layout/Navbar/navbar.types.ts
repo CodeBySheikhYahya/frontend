@@ -14,6 +14,9 @@ export type MenuItem = {
 
 export type MenuListData = (Omit<MenuItem, "children" | "type"> & {
   description?: string | React.ReactNode;
+  children?: (Omit<MenuItem, "children" | "type"> & {
+    description?: string | React.ReactNode;
+  })[];
 })[];
 
 export type NavMenu = MenuItem[];
