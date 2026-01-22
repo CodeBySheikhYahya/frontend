@@ -1,7 +1,7 @@
 import ProductListSec from "@/components/common/ProductListSec";
 import BreadcrumbProduct from "@/components/product-page/BreadcrumbProduct";
 import Header from "@/components/product-page/Header";
-import Tabs from "@/components/product-page/Tabs";
+// import Tabs from "@/components/product-page/Tabs";
 import { getProductById, getRelatedProducts, getAllProducts } from "@/lib/supabase/products";
 import { notFound } from "next/navigation";
 
@@ -35,7 +35,7 @@ export default async function ProductPage({
         <section className="mb-11">
           <Header data={productData} />
         </section>
-        <Tabs productId={productData.id as string} />
+        {/* <Tabs productId={productData.id as string} /> */}
       </div>
       <div className="mb-[50px] sm:mb-20">
         <ProductListSec title="You might also like" data={relatedProducts.filter(p => p.id !== productData.id).slice(0, 4)} />

@@ -15,7 +15,7 @@ import {
   X,
   Folder,
   Tag,
-  Layout,
+  // Layout, // Commented out - Product Tabs feature disabled
 } from "lucide-react";
 import { isAdmin } from "@/lib/supabase/admin";
 import { supabase } from "@/lib/supabase";
@@ -41,11 +41,11 @@ const adminNavItems = [
     href: "/admin/products",
     icon: Package,
   },
-  {
-    label: "Product Tabs",
-    href: "/admin/tabs",
-    icon: Layout,
-  },
+  // {
+  //   label: "Product Tabs",
+  //   href: "/admin/tabs",
+  //   icon: Layout,
+  // },
   {
     label: "Orders",
     href: "/admin/orders",

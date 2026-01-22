@@ -600,6 +600,114 @@ export async function getRelatedProducts(categoryId: string, excludeId: string, 
   return (data || []).map(transformProduct)
 }
 
+// Search products by name and category name (server-side)
+export async function searchProducts(
+  searchQuery: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<Product[]> {
+  try {
+    if (!searchQuery || searchQuery.trim().length === 0) {
+      return []
+    }
+
+    const query = searchQuery.trim()
+    const uniqueProducts = new Map<string, any>()
+
+    // First, find categories that match the search query
+    const { data: matchingCategories, error: categoryError } = await supabase
+      .from('categories')
+      .select('id')
+      .ilike('name', `%${query}%`)
+      .eq('is_active', true)
+
+    const categoryIds: string[] = []
+    if (!categoryError && matchingCategories) {
+      categoryIds.push(...matchingCategories.map(c => c.id))
+      
+      // Also get child categories if parent matches
+      for (const cat of matchingCategories) {
+        const { data: children } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('parent_id', cat.id)
+          .eq('is_active', true)
+        
+        if (children) {
+          categoryIds.push(...children.map(c => c.id))
+        }
+      }
+    }
+
+    // Search products by title OR description
+    const { data: productsByText, error: textError } = await supabase
+      .from('products')
+      .select(`
+        *,
+        images:product_images(*),
+        variants:product_variants(
+          id,
+          stock_quantity,
+          is_active,
+          color:colors(id, name, hex_code),
+          size:sizes(id, name)
+        ),
+        category:categories(id, name, slug)
+      `)
+      .eq('is_active', true)
+      .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (!textError && productsByText) {
+      productsByText.forEach((product: any) => {
+        if (!uniqueProducts.has(product.id)) {
+          uniqueProducts.set(product.id, product)
+        }
+      })
+    }
+
+    // Search products by category IDs (if any matched)
+    if (categoryIds.length > 0) {
+      const { data: productsByCategory, error: categorySearchError } = await supabase
+        .from('products')
+        .select(`
+          *,
+          images:product_images(*),
+          variants:product_variants(
+            id,
+            stock_quantity,
+            is_active,
+            color:colors(id, name, hex_code),
+            size:sizes(id, name)
+          ),
+          category:categories(id, name, slug)
+        `)
+        .eq('is_active', true)
+        .in('category_id', categoryIds)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (!categorySearchError && productsByCategory) {
+        productsByCategory.forEach((product: any) => {
+          if (!uniqueProducts.has(product.id)) {
+            uniqueProducts.set(product.id, product)
+          }
+        })
+      }
+    }
+
+    // Convert to array, apply offset and limit
+    const allProducts = Array.from(uniqueProducts.values())
+    const paginatedProducts = allProducts.slice(offset, offset + limit)
+
+    return paginatedProducts.map(transformProduct)
+  } catch (error) {
+    console.error('Error in searchProducts:', error)
+    return []
+  }
+}
+
 
 
 

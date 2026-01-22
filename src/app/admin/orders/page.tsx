@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import {
   getAllAdminOrders,
   updateOrderStatus,
+  updatePaymentStatus,
   type AdminOrder,
   type OrderStatus,
+  type PaymentStatus,
 } from "@/lib/supabase/admin-orders";
 import { Eye, Package, Filter } from "lucide-react";
 
@@ -24,12 +26,15 @@ const ORDER_STATUSES: Array<{ value: OrderStatus | "all"; label: string; color: 
   { value: "refunded", label: "Refunded", color: "bg-gray-600" },
 ];
 
+const PAYMENT_STATUSES: PaymentStatus[] = ["pending", "paid", "failed", "refunded"];
+
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -47,29 +52,92 @@ export default function AdminOrdersPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    console.log("=== ORDER STATUS CHANGE DEBUG ===");
+    console.log("Order ID:", orderId);
+    console.log("New Status:", newStatus);
+    console.log("Current Status Filter:", statusFilter);
+    
     if (!confirm(`Change order status to "${newStatus}"?`)) {
+      console.log("User cancelled the confirmation");
       return;
     }
 
+    console.log("User confirmed, updating status...");
     setUpdatingStatus(orderId);
     try {
+      console.log("Calling updateOrderStatus...");
       const result = await updateOrderStatus(orderId, newStatus);
+      console.log("Update result:", result);
+      
       if (result.success) {
+        console.log("✅ Status updated successfully, refreshing orders...");
         // Refresh orders
         await fetchOrders();
+        console.log("Orders refreshed");
       } else {
+        console.error("❌ Update failed:", result.error);
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
+      console.error("❌ Exception caught:", error);
       alert("Failed to update order status");
     } finally {
       setUpdatingStatus(null);
+      console.log("=== END STATUS CHANGE DEBUG ===");
+    }
+  };
+
+  const handlePaymentStatusChange = async (orderId: string, newPaymentStatus: PaymentStatus) => {
+    console.log("=== PAYMENT STATUS CHANGE DEBUG ===");
+    console.log("Order ID:", orderId);
+    console.log("New Payment Status:", newPaymentStatus);
+    
+    if (!confirm(`Change payment status to "${newPaymentStatus}"?`)) {
+      console.log("User cancelled the confirmation");
+      return;
+    }
+
+    console.log("User confirmed, updating payment status...");
+    setUpdatingPaymentStatus(orderId);
+    try {
+      console.log("Calling updatePaymentStatus...");
+      const result = await updatePaymentStatus(orderId, newPaymentStatus);
+      console.log("Update result:", result);
+      
+      if (result.success) {
+        console.log("✅ Payment status updated successfully, refreshing orders...");
+        // Refresh orders
+        await fetchOrders();
+        console.log("Orders refreshed");
+      } else {
+        console.error("❌ Update failed:", result.error);
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("❌ Exception caught:", error);
+      alert("Failed to update payment status");
+    } finally {
+      setUpdatingPaymentStatus(null);
+      console.log("=== END PAYMENT STATUS CHANGE DEBUG ===");
     }
   };
 
   const getStatusColor = (status: OrderStatus) => {
     const statusConfig = ORDER_STATUSES.find((s) => s.value === status);
     return statusConfig?.color || "bg-gray-500";
+  };
+
+  const getPaymentStatusColor = (paymentStatus: PaymentStatus) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "bg-green-500";
+      case "failed":
+        return "bg-red-500";
+      case "refunded":
+        return "bg-gray-600";
+      default:
+        return "bg-yellow-500";
+    }
   };
 
   const formatAddress = (address: any) => {
@@ -222,20 +290,29 @@ export default function AdminOrdersPage() {
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
+                        <select
+                          value={order.payment_status}
+                          onChange={(e) =>
+                            handlePaymentStatusChange(order.id, e.target.value as PaymentStatus)
+                          }
+                          disabled={updatingPaymentStatus === order.id}
                           className={cn(
-                            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                            order.payment_status === "paid"
-                              ? "bg-green-100 text-green-800"
-                              : order.payment_status === "failed"
-                              ? "bg-red-100 text-red-800"
-                              : order.payment_status === "refunded"
-                              ? "bg-gray-100 text-gray-800"
-                              : "bg-yellow-100 text-yellow-800"
+                            "px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer",
+                            getPaymentStatusColor(order.payment_status),
+                            "text-white",
+                            updatingPaymentStatus === order.id && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          {order.payment_status}
-                        </span>
+                          {PAYMENT_STATUSES.map((status) => (
+                            <option
+                              key={status}
+                              value={status}
+                              className="bg-white text-gray-900"
+                            >
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Link href={`/admin/orders/${order.id}`}>

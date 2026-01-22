@@ -61,21 +61,44 @@ export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
+  console.log("=== updateOrderStatus FUNCTION ===");
+  console.log("Order ID:", orderId);
+  console.log("New Status:", status);
+  console.log("Status type:", typeof status);
+  
   try {
-    const { error } = await supabase
+    const updateData = { 
+      status,
+      updated_at: new Date().toISOString()
+    };
+    console.log("Update data:", updateData);
+    
+    const { data, error } = await supabase
       .from('orders')
-      .update({ 
-        status,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', orderId)
+      .select()
 
+    console.log("Supabase response - data:", data);
+    console.log("Supabase response - error:", error);
+    
     if (error) {
+      console.error("❌ Supabase error:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+      console.error("Error details:", error.details);
+      console.error("Error hint:", error.hint);
       return { success: false, error: error.message }
     }
 
+    console.log("✅ Update successful");
+    console.log("=== END updateOrderStatus FUNCTION ===");
     return { success: true }
   } catch (error: any) {
+    console.error("❌ Exception in updateOrderStatus:", error);
+    console.error("Exception message:", error?.message);
+    console.error("Exception stack:", error?.stack);
+    console.log("=== END updateOrderStatus FUNCTION ===");
     return { success: false, error: error.message || 'Failed to update order status' }
   }
 }
@@ -85,21 +108,45 @@ export async function updatePaymentStatus(
   orderId: string,
   paymentStatus: PaymentStatus
 ): Promise<{ success: boolean; error?: string }> {
+  console.log("=== updatePaymentStatus FUNCTION ===");
+  console.log("Order ID:", orderId);
+  console.log("New Payment Status:", paymentStatus);
+  console.log("Payment Status type:", typeof paymentStatus);
+  
   try {
-    const { error } = await supabase
+    const updateData = { 
+      payment_status: paymentStatus,
+      updated_at: new Date().toISOString()
+    };
+    console.log("Update data:", updateData);
+    
+    const { data, error } = await supabase
       .from('orders')
-      .update({ 
-        payment_status: paymentStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', orderId)
+      .select()
 
+    console.log("Supabase response - data:", data);
+    console.log("Supabase response - error:", error);
+    
     if (error) {
+      console.error("❌ Supabase error:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
+      console.error("Error details:", error.details);
+      console.error("Error hint:", error.hint);
+      console.log("=== END updatePaymentStatus FUNCTION ===");
       return { success: false, error: error.message }
     }
 
+    console.log("✅ Payment status update successful");
+    console.log("=== END updatePaymentStatus FUNCTION ===");
     return { success: true }
   } catch (error: any) {
+    console.error("❌ Exception in updatePaymentStatus:", error);
+    console.error("Exception message:", error?.message);
+    console.error("Exception stack:", error?.stack);
+    console.log("=== END updatePaymentStatus FUNCTION ===");
     return { success: false, error: error.message || 'Failed to update payment status' }
   }
 }

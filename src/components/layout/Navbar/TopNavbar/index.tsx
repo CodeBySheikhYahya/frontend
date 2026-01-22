@@ -15,6 +15,7 @@ import Image from "next/image";
 import InputGroup from "@/components/ui/input-group";
 import ResTopNavbar from "./ResTopNavbar";
 import CartBtn from "./CartBtn";
+import SearchBar from "./SearchBar";
 import { getCategoriesForNavigation } from "@/lib/supabase/navigation";
 
 const staticMenuItems: NavMenu = [
@@ -135,24 +136,9 @@ const TopNavbar = () => {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
-        <InputGroup className="hidden md:flex bg-[#F0F0F0] mr-3 lg:mr-10">
-          <InputGroup.Text>
-            <Image
-              priority
-              src="/icons/search.svg"
-              height={20}
-              width={20}
-              alt="search"
-              className="min-w-5 min-h-5"
-            />
-          </InputGroup.Text>
-          <InputGroup.Input
-            type="search"
-            name="search"
-            placeholder="Search for products..."
-            className="bg-transparent placeholder:text-black/40"
-          />
-        </InputGroup>
+        <div className="hidden md:flex mr-3 lg:mr-10 w-full max-w-md">
+          <SearchBar />
+        </div>
         <div className="flex items-center">
           <Link href="/search" className="block md:hidden mr-[14px] p-1">
             <Image

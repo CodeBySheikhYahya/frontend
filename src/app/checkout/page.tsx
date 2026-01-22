@@ -66,6 +66,31 @@ const CheckoutPage = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>("cod");
+  const [transactionId, setTransactionId] = useState<string>("");
+
+  // Fake account details
+  const accountDetails = {
+    easypaisa: {
+      name: "EasyPaisa",
+      accountNumber: "0312-3456789",
+      accountName: "Your Store Name",
+      instructions: "Send money via EasyPaisa app or agent"
+    },
+    jazzcash: {
+      name: "JazzCash",
+      accountNumber: "0300-1234567",
+      accountName: "Your Store Name",
+      instructions: "Send money via JazzCash app or agent"
+    },
+    bank: {
+      name: "Direct Bank Transfer",
+      accountNumber: "PK12-3456-7890-1234-5678",
+      accountName: "Your Store Name",
+      bankName: "Bank Name",
+      instructions: "Transfer amount to the account below"
+    }
+  };
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -107,7 +132,12 @@ const CheckoutPage = () => {
     // Clear errors if validation passes
     setErrors({});
     
-    // Handle COD orders
+    // Validate transaction ID for non-COD methods
+    if (paymentMethod !== "cod" && !transactionId.trim()) {
+      setSubmitError("Please enter transaction ID/reference number");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -123,7 +153,8 @@ const CheckoutPage = () => {
           zipCode: shippingInfo.zipCode,
           country: shippingInfo.country,
         },
-        paymentMethod: "cod",
+        paymentMethod: paymentMethod,
+        transactionId: paymentMethod !== "cod" ? transactionId : undefined,
         subtotal: totalPrice,
         discountAmount: totalPrice - adjustedTotalPrice,
         totalAmount: adjustedTotalPrice,
@@ -329,6 +360,119 @@ const CheckoutPage = () => {
                     <p className="text-red-500 text-sm mt-1">{errors.country}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Payment Method Selection */}
+              <div className="mt-6">
+                <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
+                  Payment Method
+                </h2>
+                <div className="space-y-3">
+                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={paymentMethod === "cod"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-black focus:ring-black"
+                    />
+                    <div>
+                      <span className="font-medium">Cash on Delivery (COD)</span>
+                      <p className="text-sm text-black/60">Pay when you receive the order</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="easypaisa"
+                      checked={paymentMethod === "easypaisa"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-black focus:ring-black"
+                    />
+                    <div>
+                      <span className="font-medium">EasyPaisa</span>
+                      <p className="text-sm text-black/60">Send money via EasyPaisa</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="jazzcash"
+                      checked={paymentMethod === "jazzcash"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-black focus:ring-black"
+                    />
+                    <div>
+                      <span className="font-medium">JazzCash</span>
+                      <p className="text-sm text-black/60">Send money via JazzCash</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="bank"
+                      checked={paymentMethod === "bank"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-black focus:ring-black"
+                    />
+                    <div>
+                      <span className="font-medium">Direct Bank Transfer</span>
+                      <p className="text-sm text-black/60">Transfer directly to bank account</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Account Details for Non-COD Methods */}
+                {(paymentMethod === "easypaisa" || paymentMethod === "jazzcash" || paymentMethod === "bank") && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-black/10">
+                    <h3 className="font-semibold mb-3">Account Details</h3>
+                    {paymentMethod === "easypaisa" && (
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Account Number:</span> {accountDetails.easypaisa.accountNumber}</p>
+                        <p><span className="font-medium">Account Name:</span> {accountDetails.easypaisa.accountName}</p>
+                        <p className="text-black/60 mt-2">{accountDetails.easypaisa.instructions}</p>
+                      </div>
+                    )}
+                    {paymentMethod === "jazzcash" && (
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Account Number:</span> {accountDetails.jazzcash.accountNumber}</p>
+                        <p><span className="font-medium">Account Name:</span> {accountDetails.jazzcash.accountName}</p>
+                        <p className="text-black/60 mt-2">{accountDetails.jazzcash.instructions}</p>
+                      </div>
+                    )}
+                    {paymentMethod === "bank" && (
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Bank Name:</span> {accountDetails.bank.bankName}</p>
+                        <p><span className="font-medium">Account Number:</span> {accountDetails.bank.accountNumber}</p>
+                        <p><span className="font-medium">Account Name:</span> {accountDetails.bank.accountName}</p>
+                        <p className="text-black/60 mt-2">{accountDetails.bank.instructions}</p>
+                      </div>
+                    )}
+                    
+                    {/* Transaction ID Input */}
+                    <div className="mt-4">
+                      <InputGroup className="bg-white">
+                        <InputGroup.Input
+                          type="text"
+                          placeholder="Enter Transaction ID / Reference Number"
+                          value={transactionId}
+                          onChange={(e) => setTransactionId(e.target.value)}
+                          className="bg-transparent"
+                        />
+                      </InputGroup>
+                      <p className="text-xs text-black/60 mt-1">
+                        Enter the transaction ID or reference number after sending the money
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </form>

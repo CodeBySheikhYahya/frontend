@@ -74,6 +74,7 @@ export interface CreateOrderData {
     country: string
   }
   paymentMethod: string
+  transactionId?: string
   subtotal: number
   discountAmount: number
   totalAmount: number
@@ -107,6 +108,12 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       country: data.shippingInfo.country,
     }
 
+    // Prepare notes with transaction ID if provided
+    let orderNotes = null;
+    if (data.transactionId) {
+      orderNotes = `Transaction ID: ${data.transactionId}`;
+    }
+
     const orderData = {
       user_id: data.userId || null,
       order_number: orderNumber,
@@ -119,6 +126,7 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       shipping_address: shippingAddress,
       payment_method: data.paymentMethod,
       payment_status: 'pending',
+      notes: orderNotes,
     }
 
     // Create order
@@ -313,11 +321,12 @@ export async function getOrderByNumber(
   payment_status: string;
   status: string;
   total_amount: number;
+  notes: string | null;
 } | null> {
   try {
     const { data, error } = await supabase
       .from('orders')
-      .select('id, order_number, payment_method, payment_status, status, total_amount')
+      .select('id, order_number, payment_method, payment_status, status, total_amount, notes')
       .eq('order_number', orderNumber)
       .single();
 
