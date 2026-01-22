@@ -57,8 +57,8 @@ export default function AdminOrderDetailsPage() {
       }
 
       setOrder(data);
-      setStatus(data.status);
-      setPaymentStatus(data.payment_status);
+      setStatus(data.status as OrderStatus);
+      setPaymentStatus(data.payment_status as PaymentStatus);
       setNotes(data.notes || "");
     } catch (error) {
       alert("Failed to load order");
