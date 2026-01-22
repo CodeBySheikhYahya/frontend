@@ -356,7 +356,9 @@ export async function getOrderDetailsById(
   total_amount: number;
   shipping_address: any;
   billing_address: any;
+  notes: string | null;
   created_at: string;
+  updated_at: string;
   items: Array<{
     id: string;
     product_title: string;
@@ -405,7 +407,9 @@ export async function getOrderDetailsById(
       total_amount: order.total_amount,
       shipping_address: order.shipping_address,
       billing_address: order.billing_address,
+      notes: order.notes || null,
       created_at: order.created_at,
+      updated_at: order.updated_at,
       items: items || [],
     };
   } catch (error: any) {
