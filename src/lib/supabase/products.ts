@@ -363,7 +363,7 @@ export async function getFilteredProducts(
           .in('id', Array.from(matchingVariantIds))
         
         if (variants) {
-          const productIds = [...new Set(variants.map((v: any) => v.product_id))]
+          const productIds = Array.from(new Set(variants.map((v: any) => v.product_id)))
           products = products.filter((p) => productIds.includes(p.id as string))
         } else {
           products = []
