@@ -466,10 +466,10 @@ export default function EditProductPage() {
               // Update variant basic info
               await upsertVariant(variant.id, {
                 product_id: productId,
-                color_id: null,
-                size_id: null,
+                color_id: undefined,
+                size_id: undefined,
                 stock_quantity: variant.stock_quantity,
-                price_override: variant.price_override ? parseFloat(variant.price_override) : null,
+                price_override: variant.price_override ? parseFloat(variant.price_override) : undefined,
                 is_active: variant.is_active,
               });
               

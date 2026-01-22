@@ -507,8 +507,8 @@ export async function createSize(
 // Create or update product variant
 export interface VariantData {
   product_id: string
-  color_id: string
-  size_id: string
+  color_id?: string | null
+  size_id?: string | null
   stock_quantity: number
   price_override?: number | null
   is_active?: boolean
