@@ -38,7 +38,22 @@ export async function getCategoryBySlugPath(slugPath: string[]): Promise<Categor
         return null
       }
 
-      return data as CategoryWithParent
+      // Transform parent from array to single object if needed
+      const parentData = Array.isArray(data.parent) 
+        ? (data.parent.length > 0 ? data.parent[0] : null)
+        : data.parent
+
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        parent_id: data.parent_id,
+        parent: parentData ? {
+          id: parentData.id,
+          name: parentData.name,
+          slug: parentData.slug,
+        } : null,
+      } as CategoryWithParent
     }
 
     // If two slugs, it's parent/child (e.g., bag/party-bag)
