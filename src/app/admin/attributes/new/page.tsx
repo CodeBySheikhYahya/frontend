@@ -138,7 +138,7 @@ export default function AddAttributePage() {
             attribute_id: attributeId,
             value: values[i].value || values[i].hex_code || "",
             display_value: values[i].display_value || values[i].value || values[i].hex_code || "",
-            hex_code: values[i].hex_code || null,
+            hex_code: values[i].hex_code || undefined,
             display_order: i,
             is_active: true,
           });
