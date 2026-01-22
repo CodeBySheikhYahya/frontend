@@ -1,6 +1,9 @@
 import { supabase } from '../supabase'
 import { ProductTab } from './products'
 
+// Re-export ProductTab type for use in other modules
+export type { ProductTab }
+
 // Get all tabs (for admin)
 export async function getAllTabs(): Promise<ProductTab[]> {
   try {
