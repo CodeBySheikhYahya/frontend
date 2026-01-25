@@ -66,12 +66,19 @@ export default function AdminDashboard() {
 
           const totalProducts = productsError ? 0 : (productCount || 0);
 
+          // Fetch products for stock analysis
+          const products = await getAllAdminProducts();
+          const lowStockCount = products.filter(p => hasLowStock(p)).length;
+          const outOfStockCount = products.filter(p => isOutOfStock(p)).length;
+
           setStats({
             totalOrders,
             pendingOrders,
             completedOrders,
             totalRevenue,
             totalProducts,
+            lowStockProducts: lowStockCount,
+            outOfStockProducts: outOfStockCount,
           });
         }
       } catch (error) {
