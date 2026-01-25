@@ -26,7 +26,8 @@ const AddToCartBtn = ({ data, product }: { data: Product & { quantity: number };
     );
   }, [product.variants, data.variants, colorSelection.name, sizeSelection]);
 
-  const isOutOfStock = selectedVariant ? (selectedVariant.stock_quantity || 0) === 0 : false;
+  const stockQuantity = selectedVariant ? (selectedVariant.stock_quantity || 0) : 0;
+  const isOutOfStock = stockQuantity === 0;
   const hasSelection = colorSelection.name && sizeSelection;
 
   const handleAddToCart = () => {
@@ -65,7 +66,13 @@ const AddToCartBtn = ({ data, product }: { data: Product & { quantity: number };
           : "bg-black hover:bg-black/80"
       )}
     >
-      {isOutOfStock ? "Out of Stock" : !hasSelection ? "Select Options" : "Add to Cart"}
+      {isOutOfStock 
+        ? "Out of Stock" 
+        : !hasSelection 
+        ? "Select Options" 
+        : stockQuantity > 0 
+        ? `Add to Cart (${stockQuantity} left)`
+        : "Add to Cart"}
     </button>
   );
 };

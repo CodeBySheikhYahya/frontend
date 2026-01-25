@@ -8,10 +8,16 @@ import {
   ShoppingBag,
   Package,
   DollarSign,
-  TrendingUp,
   Clock,
   CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  getAllAdminProducts,
+  calculateProductStock,
+  hasLowStock,
+  isOutOfStock,
+} from "@/lib/supabase/admin-products";
 
 interface DashboardStats {
   totalOrders: number;
@@ -19,6 +25,8 @@ interface DashboardStats {
   completedOrders: number;
   totalRevenue: number;
   totalProducts: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
 }
 
 export default function AdminDashboard() {
@@ -29,6 +37,8 @@ export default function AdminDashboard() {
     completedOrders: 0,
     totalRevenue: 0,
     totalProducts: 0,
+    lowStockProducts: 0,
+    outOfStockProducts: 0,
   });
 
   useEffect(() => {
@@ -112,6 +122,18 @@ export default function AdminDashboard() {
       icon: Package,
       color: "bg-indigo-500",
     },
+    {
+      title: "Low Stock",
+      value: stats.lowStockProducts,
+      icon: AlertTriangle,
+      color: "bg-yellow-500",
+    },
+    {
+      title: "Out of Stock",
+      value: stats.outOfStockProducts,
+      icon: AlertTriangle,
+      color: "bg-red-500",
+    },
   ];
 
   return (
@@ -151,7 +173,7 @@ export default function AdminDashboard() {
         <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <a
             href="/admin/products"
             className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -167,14 +189,6 @@ export default function AdminDashboard() {
             <ShoppingBag className="w-6 h-6 mb-2 text-gray-700" />
             <p className="font-semibold">View Orders</p>
             <p className="text-sm text-gray-600">Manage and track orders</p>
-          </a>
-          <a
-            href="/admin/settings"
-            className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <TrendingUp className="w-6 h-6 mb-2 text-gray-700" />
-            <p className="font-semibold">Settings</p>
-            <p className="text-sm text-gray-600">Configure admin settings</p>
           </a>
         </div>
       </div>

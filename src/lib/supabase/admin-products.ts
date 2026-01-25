@@ -49,7 +49,14 @@ export async function getAllAdminProducts(): Promise<AdminProduct[]> {
         *,
         category:categories(id, name),
         brand:brands(id, name),
-        images:product_images(id, image_url, is_primary, display_order)
+        images:product_images(id, image_url, is_primary, display_order),
+        variants:product_variants(
+          id,
+          stock_quantity,
+          is_active,
+          color:colors(id, name, hex_code),
+          size:sizes(id, name)
+        )
       `)
       .order('created_at', { ascending: false })
 
@@ -61,6 +68,28 @@ export async function getAllAdminProducts(): Promise<AdminProduct[]> {
   } catch (error) {
     return []
   }
+}
+
+// Calculate total stock for a product (sum of all variants)
+export function calculateProductStock(product: AdminProduct): number {
+  if (!product.variants || product.variants.length === 0) {
+    return 0
+  }
+  
+  return product.variants
+    .filter(v => v.is_active !== false)
+    .reduce((total, variant) => total + (variant.stock_quantity || 0), 0)
+}
+
+// Check if product has low stock (less than 5)
+export function hasLowStock(product: AdminProduct): boolean {
+  const totalStock = calculateProductStock(product)
+  return totalStock > 0 && totalStock < 5
+}
+
+// Check if product is out of stock
+export function isOutOfStock(product: AdminProduct): boolean {
+  return calculateProductStock(product) === 0
 }
 
 // Get single product with all details for admin
@@ -646,6 +675,70 @@ export async function deleteVariant(
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to delete variant' }
+  }
+}
+
+// Update variant stock (increase or decrease)
+export async function updateVariantStock(
+  variantId: string,
+  newStockQuantity: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (newStockQuantity < 0) {
+      return { success: false, error: 'Stock quantity cannot be negative' }
+    }
+
+    const { error } = await supabase
+      .from('product_variants')
+      .update({ stock_quantity: newStockQuantity })
+      .eq('id', variantId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to update stock' }
+  }
+}
+
+// Increase variant stock (add to existing)
+export async function increaseVariantStock(
+  variantId: string,
+  quantityToAdd: number
+): Promise<{ success: boolean; error?: string; newStock?: number }> {
+  try {
+    if (quantityToAdd <= 0) {
+      return { success: false, error: 'Quantity to add must be greater than 0' }
+    }
+
+    // Get current stock
+    const { data: variant, error: fetchError } = await supabase
+      .from('product_variants')
+      .select('stock_quantity')
+      .eq('id', variantId)
+      .single()
+
+    if (fetchError || !variant) {
+      return { success: false, error: fetchError?.message || 'Variant not found' }
+    }
+
+    const currentStock = variant.stock_quantity || 0
+    const newStock = currentStock + quantityToAdd
+
+    const { error: updateError } = await supabase
+      .from('product_variants')
+      .update({ stock_quantity: newStock })
+      .eq('id', variantId)
+
+    if (updateError) {
+      return { success: false, error: updateError.message }
+    }
+
+    return { success: true, newStock }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to increase stock' }
   }
 }
 

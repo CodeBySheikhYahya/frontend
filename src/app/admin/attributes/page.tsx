@@ -72,7 +72,7 @@ export default function AdminAttributesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-600">Loading attributes...</p>
+        <p className="text-gray-600">Loading properties...</p>
       </div>
     );
   }
@@ -82,16 +82,16 @@ export default function AdminAttributesPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className={cn([integralCF.className, "text-3xl font-bold mb-2"])}>
-            Attributes
+            Product Properties
           </h1>
           <p className="text-gray-600">
-            Manage product attributes ({attributes.length} attributes)
+            Manage product properties like Size, Color, Material ({attributes.length} properties)
           </p>
         </div>
         <Link href="/admin/attributes/new">
           <Button className="bg-black text-white hover:bg-black/90">
             <Plus className="w-4 h-4 mr-2" />
-            Add Attribute
+            Add Property
           </Button>
         </Link>
       </div>
@@ -99,14 +99,14 @@ export default function AdminAttributesPage() {
       {attributes.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
           <Tag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No attributes yet</h3>
+          <h3 className="text-lg font-semibold mb-2">No properties yet</h3>
           <p className="text-gray-600 mb-6">
-            Get started by adding your first attribute (Size, Color, Volume, etc.)
+            Get started by adding your first property (Size, Color, Volume, Material, etc.)
           </p>
           <Link href="/admin/attributes/new">
             <Button className="bg-black text-white hover:bg-black/90">
               <Plus className="w-4 h-4 mr-2" />
-              Add Your First Attribute
+              Add Your First Property
             </Button>
           </Link>
         </div>
@@ -182,7 +182,7 @@ export default function AdminAttributesPage() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            title="Edit Attribute"
+                            title="Edit Property"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -193,7 +193,7 @@ export default function AdminAttributesPage() {
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => handleDelete(attribute.id, attribute.name)}
                           disabled={deletingId === attribute.id}
-                          title="Delete Attribute"
+                            title="Delete Property"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

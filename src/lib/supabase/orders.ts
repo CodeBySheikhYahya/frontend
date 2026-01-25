@@ -231,6 +231,44 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
           error: itemsError.message || 'Failed to create order items',
         }
       }
+
+    // Reduce stock for each variant
+    for (const cartItem of data.cartItems) {
+      if (cartItem.productId) {
+        const productId = cartItem.productId
+        const variantId = await getVariantId(
+          productId,
+          cartItem.attributes[1] || '', // color
+          cartItem.attributes[0] || '' // size
+        )
+
+        if (variantId) {
+          // Get current stock
+          const { data: variant } = await supabase
+            .from('product_variants')
+            .select('stock_quantity')
+            .eq('id', variantId)
+            .single()
+
+          if (variant) {
+            const currentStock = variant.stock_quantity || 0
+            const newStock = Math.max(0, currentStock - cartItem.quantity)
+            
+            // Update stock
+            const { error: stockError } = await supabase
+              .from('product_variants')
+              .update({ stock_quantity: newStock })
+              .eq('id', variantId)
+
+            if (stockError) {
+              console.error(`Failed to reduce stock for variant ${variantId}:`, stockError)
+            }
+          }
+        } else {
+          console.warn(`Variant not found for product ${productId}, color: ${cartItem.attributes[1]}, size: ${cartItem.attributes[0]}`)
+        }
+      }
+    }
     
     return {
       success: true,

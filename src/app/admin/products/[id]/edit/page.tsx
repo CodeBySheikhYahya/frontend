@@ -841,7 +841,7 @@ export default function EditProductPage() {
           {variants.length === 0 ? (
             <p className="text-gray-500 text-sm">
               {categoryAttributes.length > 0
-                ? "No variants added. Click 'Add Variant' to add attribute combinations."
+                ? "No variants added. Click 'Add Variant' to add property combinations (like Size + Color)."
                 : "No variants added. Click 'Add Variant' to add color/size combinations."}
             </p>
           ) : (
@@ -856,7 +856,7 @@ export default function EditProductPage() {
                       : "grid-cols-1 md:grid-cols-5"
                   )}
                 >
-                  {/* Dynamic Attribute Fields */}
+                  {/* Dynamic Property Fields */}
                   {categoryAttributes.length > 0 ? (
                     categoryAttributes.map((catAttr) => {
                       const attr = catAttr.attribute;

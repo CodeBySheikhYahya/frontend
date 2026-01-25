@@ -21,12 +21,13 @@ const SizeSelection = ({ product }: { product: Product }) => {
       return [];
     }
     
-    const sizeMap = new Map<string, { name: string; hasStock: boolean }>();
+    const sizeMap = new Map<string, { name: string; hasStock: boolean; stockQuantity: number }>();
     
     product.variants.forEach((variant) => {
       if (variant.size && variant.is_active !== false) {
         const sizeId = variant.size.id;
-        const hasStock = (variant.stock_quantity || 0) > 0;
+        const stockQty = variant.stock_quantity || 0;
+        const hasStock = stockQty > 0;
         
         // If color is selected, only check variants with that color
         const matchesColor = !colorSelection.name || variant.color?.name === colorSelection.name;
@@ -35,16 +36,24 @@ const SizeSelection = ({ product }: { product: Product }) => {
           sizeMap.set(sizeId, {
             name: variant.size.name,
             hasStock: matchesColor ? hasStock : true, // If color not selected, show as available
+            stockQuantity: matchesColor ? stockQty : 999, // If color not selected, show high number
           });
         } else {
-          // If any variant with this size has stock, mark as hasStock
+          // If color selected, sum stock for this size+color combination
+          // If color not selected, keep highest stock
           const existing = sizeMap.get(sizeId)!;
-          if (matchesColor && hasStock) {
-            sizeMap.set(sizeId, { ...existing, hasStock: true });
-          } else if (matchesColor && !hasStock && existing.hasStock) {
-            // Keep hasStock true if any variant has stock
-          } else if (matchesColor && !hasStock) {
-            sizeMap.set(sizeId, { ...existing, hasStock: false });
+          if (matchesColor) {
+            sizeMap.set(sizeId, { 
+              ...existing, 
+              hasStock: hasStock || existing.hasStock,
+              stockQuantity: stockQty, // Stock for selected color
+            });
+          } else {
+            // Color not selected - keep existing stock (shows max available)
+            sizeMap.set(sizeId, { 
+              ...existing, 
+              stockQuantity: Math.max(existing.stockQuantity, stockQty),
+            });
           }
         }
       }
@@ -81,9 +90,13 @@ const SizeSelection = ({ product }: { product: Product }) => {
               >
                 {size.name}
               </button>
-              {isOutOfStock && (
+              {isOutOfStock ? (
                 <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] text-red-600 font-medium whitespace-nowrap">
                   Out of Stock
+                </span>
+              ) : colorSelection.name && size.stockQuantity > 0 && (
+                <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] text-black/60 font-medium whitespace-nowrap">
+                  {size.stockQuantity} left
                 </span>
               )}
             </div>

@@ -9,12 +9,12 @@ import {
   LayoutDashboard,
   Package,
   ShoppingBag,
-  Settings,
   LogOut,
   Menu,
   X,
   Folder,
   Tag,
+  Mail,
   // Layout, // Commented out - Product Tabs feature disabled
 } from "lucide-react";
 import { isAdmin } from "@/lib/supabase/admin";
@@ -32,7 +32,7 @@ const adminNavItems = [
     icon: Folder,
   },
   {
-    label: "Attributes",
+    label: "Properties",
     href: "/admin/attributes",
     icon: Tag,
   },
@@ -52,9 +52,9 @@ const adminNavItems = [
     icon: ShoppingBag,
   },
   {
-    label: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
+    label: "Newsletter",
+    href: "/admin/newsletter",
+    icon: Mail,
   },
 ];
 

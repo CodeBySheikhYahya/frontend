@@ -25,12 +25,13 @@ const ColorSelection = ({ product }: { product: Product }) => {
       return [];
     }
     
-    const colorMap = new Map<string, { name: string; hex_code: string; hasStock: boolean }>();
+    const colorMap = new Map<string, { name: string; hex_code: string; hasStock: boolean; stockQuantity: number }>();
     
     product.variants.forEach((variant) => {
       if (variant.color && variant.is_active !== false) {
         const colorId = variant.color.id;
-        const hasStock = (variant.stock_quantity || 0) > 0;
+        const stockQty = variant.stock_quantity || 0;
+        const hasStock = stockQty > 0;
         
         // If size is selected, only check variants with that size
         const matchesSize = !sizeSelection || variant.size?.name === sizeSelection;
@@ -40,16 +41,24 @@ const ColorSelection = ({ product }: { product: Product }) => {
             name: variant.color.name,
             hex_code: variant.color.hex_code,
             hasStock: matchesSize ? hasStock : true, // If size not selected, show as available
+            stockQuantity: matchesSize ? stockQty : 999, // If size not selected, show high number
           });
         } else {
-          // If any variant with this color has stock, mark as hasStock
+          // If size selected, sum stock for this color+size combination
+          // If size not selected, keep highest stock
           const existing = colorMap.get(colorId)!;
-          if (matchesSize && hasStock) {
-            colorMap.set(colorId, { ...existing, hasStock: true });
-          } else if (matchesSize && !hasStock && existing.hasStock) {
-            // Keep hasStock true if any variant has stock
-          } else if (matchesSize && !hasStock) {
-            colorMap.set(colorId, { ...existing, hasStock: false });
+          if (matchesSize) {
+            colorMap.set(colorId, { 
+              ...existing, 
+              hasStock: hasStock || existing.hasStock,
+              stockQuantity: stockQty, // Stock for selected size
+            });
+          } else {
+            // Size not selected - keep existing stock (shows max available)
+            colorMap.set(colorId, { 
+              ...existing, 
+              stockQuantity: Math.max(existing.stockQuantity, stockQty),
+            });
           }
         }
       }
@@ -93,9 +102,13 @@ const ColorSelection = ({ product }: { product: Product }) => {
                   <IoMdCheckmark className="text-base text-white" />
                 )}
               </button>
-              {isOutOfStock && (
+              {isOutOfStock ? (
                 <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] text-red-600 font-medium whitespace-nowrap">
                   Out of Stock
+                </span>
+              ) : sizeSelection && color.stockQuantity > 0 && (
+                <span className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[10px] text-black/60 font-medium whitespace-nowrap">
+                  {color.stockQuantity} left
                 </span>
               )}
             </div>

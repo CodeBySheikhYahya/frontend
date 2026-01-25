@@ -45,12 +45,12 @@ export default function EditAttributePage() {
         setIsPredefined(attribute.is_predefined);
         setDisplayOrder(attribute.display_order);
       } else {
-        alert("Attribute not found");
+        alert("Property not found");
         router.push("/admin/attributes");
       }
     } catch (error) {
       console.error("Error fetching attribute:", error);
-      alert("Failed to load attribute");
+      alert("Failed to load property");
       router.push("/admin/attributes");
     } finally {
       setLoading(false);
@@ -86,7 +86,7 @@ export default function EditAttributePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-600">Loading attribute...</p>
+        <p className="text-gray-600">Loading property...</p>
       </div>
     );
   }
@@ -97,13 +97,13 @@ export default function EditAttributePage() {
         <Link href="/admin/attributes">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Attributes
+            Back to Properties
           </Button>
         </Link>
         <h1 className={cn([integralCF.className, "text-3xl font-bold"])}>
-          Edit Attribute
+          Edit Property
         </h1>
-        <p className="text-gray-600 mt-2">Update attribute information</p>
+        <p className="text-gray-600 mt-2">Update property information</p>
       </div>
 
       <form
@@ -121,7 +121,7 @@ export default function EditAttributePage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attribute Name * (e.g., "Size", "Color", "Volume")
+                  Property Name * (e.g., "Size", "Color", "Volume")
                 </label>
                 <InputGroup className="bg-[#F0F0F0]">
                   <InputGroup.Input
@@ -156,7 +156,7 @@ export default function EditAttributePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attribute Type *
+                  Property Type *
                 </label>
                 <select
                   value={attributeType}

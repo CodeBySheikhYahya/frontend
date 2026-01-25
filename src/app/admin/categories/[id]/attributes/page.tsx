@@ -80,7 +80,7 @@ export default function CategoryAttributesPage() {
 
   const handleAssignAttribute = async () => {
     if (!selectedAttributeId) {
-      alert("Please select an attribute");
+      alert("Please select a property");
       return;
     }
 
@@ -101,7 +101,7 @@ export default function CategoryAttributesPage() {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      alert("Failed to assign attribute");
+      alert("Failed to assign property");
     } finally {
       setSaving(false);
     }
@@ -142,7 +142,7 @@ export default function CategoryAttributesPage() {
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      alert("Failed to update attribute");
+      alert("Failed to update property");
     }
   };
 
@@ -198,11 +198,11 @@ export default function CategoryAttributesPage() {
           </Button>
         </Link>
         <h1 className={cn([integralCF.className, "text-3xl font-bold"])}>
-          Manage Attributes: {category.name}
+          Manage Properties: {category.name}
         </h1>
         <p className="text-gray-600 mt-2">
-          Assign attributes to this category. Products in this category will use
-          these attributes.
+          Assign properties to this category. Products in this category will use
+          these properties (like Size, Color, Material, etc.)
         </p>
       </div>
 
@@ -228,11 +228,11 @@ export default function CategoryAttributesPage() {
           <div className="text-center py-12">
             <Settings className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold mb-2">
-              No attributes assigned
+              No properties assigned
             </h3>
             <p className="text-gray-600 mb-6">
-              Add attributes to this category to define what product fields will
-              be available.
+              Add properties to this category to define what product options will
+              be available (like Size, Color, Material, etc.)
             </p>
             {availableAttributes.length > 0 && (
               <Button
@@ -240,7 +240,7 @@ export default function CategoryAttributesPage() {
                 className="bg-black text-white hover:bg-black/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add First Attribute
+                Add First Property
               </Button>
             )}
           </div>
@@ -324,7 +324,7 @@ export default function CategoryAttributesPage() {
                           )
                         }
                         disabled={removingId === ca.id}
-                        title="Remove Attribute"
+                        title="Remove Property"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -339,7 +339,7 @@ export default function CategoryAttributesPage() {
         {availableAttributes.length === 0 && categoryAttributes.length > 0 && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              All available attributes have been assigned to this category.
+              All available properties have been assigned to this category.
             </p>
           </div>
         )}
@@ -352,13 +352,13 @@ export default function CategoryAttributesPage() {
             <h3
               className={cn([integralCF.className, "text-xl font-bold mb-4"])}
             >
-              Add Attribute to Category
+              Add Property to Category
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Attribute *
+                  Select Property *
                 </label>
                 <select
                   value={selectedAttributeId}
@@ -366,7 +366,7 @@ export default function CategoryAttributesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                   required
                 >
-                  <option value="">Choose an attribute...</option>
+                  <option value="">Choose a property...</option>
                   {availableAttributes.map((attr) => (
                     <option key={attr.id} value={attr.id}>
                       {attr.display_name} ({getAttributeTypeLabel(attr.attribute_type)})
@@ -425,7 +425,7 @@ export default function CategoryAttributesPage() {
                 onClick={handleAssignAttribute}
                 disabled={saving || !selectedAttributeId}
               >
-                {saving ? "Adding..." : "Add Attribute"}
+                {saving ? "Adding..." : "Add Property"}
               </Button>
             </div>
           </div>

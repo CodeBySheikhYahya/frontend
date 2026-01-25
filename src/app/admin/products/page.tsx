@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button";
 import {
   getAllAdminProducts,
   deleteProduct,
+  calculateProductStock,
+  hasLowStock,
+  isOutOfStock,
   type AdminProduct,
 } from "@/lib/supabase/admin-products";
-import { Plus, Edit, Trash2, Eye, Package } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Package, AlertTriangle } from "lucide-react";
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -46,10 +49,10 @@ export default function AdminProductsPage() {
       if (result.success) {
         setProducts(products.filter((p) => p.id !== id));
       } else {
-        alert(`Error: ${result.error}`);
+        alert(`Error: ${result.error || "Failed to delete product. It may have existing orders."}`);
       }
-    } catch (error) {
-      alert("Failed to delete product");
+    } catch (error: any) {
+      alert(`Failed to delete product: ${error?.message || "Unknown error"}`);
     } finally {
       setDeletingId(null);
     }
@@ -158,6 +161,37 @@ export default function AdminProductsPage() {
                               : `$${product.discount_value} off`}
                           </div>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {(() => {
+                          const totalStock = calculateProductStock(product);
+                          const lowStock = hasLowStock(product);
+                          const outOfStock = isOutOfStock(product);
+                          
+                          return (
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className={cn(
+                                  "text-sm font-medium",
+                                  outOfStock ? "text-red-600" : lowStock ? "text-yellow-600" : "text-gray-900"
+                                )}>
+                                  {totalStock} units
+                                </span>
+                                {outOfStock && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Out of Stock
+                                  </span>
+                                )}
+                                {lowStock && !outOfStock && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <AlertTriangle className="w-3 h-3 mr-1" />
+                                    Low Stock
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">

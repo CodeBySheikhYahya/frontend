@@ -164,14 +164,14 @@ export default function AddAttributePage() {
         <Link href="/admin/attributes">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Attributes
+            Back to Properties
           </Button>
         </Link>
         <h1 className={cn([integralCF.className, "text-3xl font-bold"])}>
-          Add New Attribute
+          Add New Property
         </h1>
         <p className="text-gray-600 mt-2">
-          Create a new product attribute (Size, Color, Volume, etc.)
+          Create a new product property (Size, Color, Volume, Material, etc.)
         </p>
       </div>
 
@@ -190,7 +190,7 @@ export default function AddAttributePage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attribute Name * (e.g., "Size", "Color", "Volume")
+                  Property Name * (e.g., "Size", "Color", "Volume")
                 </label>
                 <InputGroup className="bg-[#F0F0F0]">
                   <InputGroup.Input
@@ -225,7 +225,7 @@ export default function AddAttributePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Attribute Type *
+                  Property Type *
                 </label>
                 <select
                   value={attributeType}
@@ -263,10 +263,10 @@ export default function AddAttributePage() {
               <h2
                 className={cn([integralCF.className, "text-xl font-bold mb-4"])}
               >
-                Attribute Values
+                Options / Choices
               </h2>
               <p className="text-sm text-gray-600 mb-4">
-                Add the available values for this attribute (e.g., Red, Blue, Black for Color; Small, Medium, Large for Size; Leather, Cotton, Plastic for Material)
+                Add the available options for this property (e.g., Red, Blue, Black for Color; Small, Medium, Large for Size; Leather, Cotton, Plastic for Material)
               </p>
 
               {/* Summary when collapsed */}
@@ -282,7 +282,7 @@ export default function AddAttributePage() {
                           {values.length} {values.length === 1 ? 'value' : 'values'} added
                         </p>
                         <p className="text-sm text-gray-600">
-                          Ready to create attribute. Click below to add more values if needed.
+                          Ready to create property. Click below to add more options if needed.
                         </p>
                       </div>
                     </div>
@@ -492,7 +492,7 @@ export default function AddAttributePage() {
               {values.length === 0 && (
                 <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                   <p className="text-sm text-gray-500">
-                    No values added yet. Add values above to create options for this attribute.
+                    No options added yet. Add options above to create choices for this property.
                   </p>
                 </div>
               )}
@@ -558,7 +558,7 @@ export default function AddAttributePage() {
               className="bg-black text-white hover:bg-black/90"
               disabled={loading || !name}
             >
-              {loading ? "Creating..." : "Create Attribute"}
+              {loading ? "Creating..." : "Create Property"}
             </Button>
           </div>
         </div>
