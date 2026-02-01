@@ -4,6 +4,7 @@ import Header from "@/components/product-page/Header";
 // import Tabs from "@/components/product-page/Tabs";
 import { getProductById, getRelatedProducts, getAllProducts } from "@/lib/supabase/products";
 import { notFound } from "next/navigation";
+import { unstable_noStore } from "next/cache";
 
 // Make this page dynamic to avoid build-time Supabase calls
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ export default async function ProductPage({
 }: {
   params: { slug: string[] };
 }) {
+  unstable_noStore(); // Never cache: every request gets fresh data from Supabase
   // Get product ID from slug (first part)
   const productId = params.slug[0];
   

@@ -5,6 +5,7 @@ import { FiSliders } from "react-icons/fi";
 import ProductCard from "@/components/common/ProductCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { getAllProducts, getNewArrivals, getTopSelling, getOnSaleProducts, getFilteredProducts } from "@/lib/supabase/products";
+import { unstable_noStore } from "next/cache";
 
 // Make this page dynamic to avoid build-time Supabase calls
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ interface ShopPageProps {
 }
 
 const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
+  unstable_noStore(); // Never cache: every request gets fresh data
   const filter = searchParams?.filter || 'all';
   const categoryId = searchParams?.category;
   const limit = 9;

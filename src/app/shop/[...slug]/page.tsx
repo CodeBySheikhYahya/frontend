@@ -6,6 +6,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { getFilteredProducts } from "@/lib/supabase/products";
 import { getCategoryBySlugPath, getChildCategoryIds } from "@/lib/supabase/categories";
 import { notFound } from "next/navigation";
+import { unstable_noStore } from "next/cache";
 
 // Make this page dynamic to avoid build-time Supabase calls
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,7 @@ interface CategoryShopPageProps {
 }
 
 const CategoryShopPage: React.FC<CategoryShopPageProps> = async ({ params, searchParams }) => {
+  unstable_noStore(); // Never cache: every request gets fresh data
   const slugPath = params.slug || [];
   const limit = 9;
   const offset = 0;
