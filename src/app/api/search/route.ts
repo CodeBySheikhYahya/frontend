@@ -7,16 +7,15 @@ export async function GET(request: NextRequest) {
   const limitParam = searchParams.get('limit');
   const limit = limitParam ? parseInt(limitParam, 10) : 8;
 
-  const noCache = { headers: { 'Cache-Control': 'no-store, max-age=0' } };
   if (!query || query.trim().length === 0) {
-    return NextResponse.json({ products: [] }, noCache);
+    return NextResponse.json({ products: [] });
   }
 
   try {
     const products = await searchProducts(query.trim(), limit, 0);
-    return NextResponse.json({ products }, noCache);
+    return NextResponse.json({ products });
   } catch (error) {
     console.error('Search API error:', error);
-    return NextResponse.json({ products: [] }, { status: 500, ...noCache });
+    return NextResponse.json({ products: [] }, { status: 500 });
   }
 }
