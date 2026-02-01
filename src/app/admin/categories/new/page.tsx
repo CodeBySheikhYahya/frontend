@@ -28,13 +28,11 @@ export default function AddCategoryPage() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
 
-  // Options
-  const [parentCategories, setParentCategories] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
+  // Options: full list so we can show "Subcategory (Parent)" in dropdown
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    fetchParentCategories();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -43,16 +41,21 @@ export default function AddCategoryPage() {
     }
   }, [name, slug]);
 
-  const fetchParentCategories = async () => {
+  const fetchCategories = async () => {
     try {
       const categories = await getAllCategories();
-      setParentCategories(
-        categories.map((c) => ({ id: c.id, name: c.name }))
-      );
+      setAllCategories(categories);
     } catch (error) {
-      console.error("Error fetching parent categories:", error);
+      console.error("Error fetching categories:", error);
     }
   };
+
+  const getParentName = (parentId: string | null) =>
+    parentId ? allCategories.find((c) => c.id === parentId)?.name ?? "—" : null;
+  const getCategoryOptionLabel = (cat: Category) =>
+    cat.parent_id
+      ? `${cat.name} (${getParentName(cat.parent_id)})`
+      : cat.name;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,9 +186,9 @@ export default function AddCategoryPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
                 >
                   <option value="">None (Top Level)</option>
-                  {parentCategories.map((cat) => (
+                  {allCategories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.name}
+                      {getCategoryOptionLabel(cat)}
                     </option>
                   ))}
                 </select>

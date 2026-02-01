@@ -69,6 +69,7 @@ export interface CreateOrderData {
     email: string
     phone: string
     address: string
+    apartment?: string
     city: string
     zipCode: string
     country: string
@@ -103,6 +104,7 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       email: data.shippingInfo.email,
       phone: data.shippingInfo.phone,
       address: data.shippingInfo.address,
+      ...(data.shippingInfo.apartment && { apartment: data.shippingInfo.apartment }),
       city: data.shippingInfo.city,
       zipCode: data.shippingInfo.zipCode,
       country: data.shippingInfo.country,

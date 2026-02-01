@@ -275,6 +275,9 @@ const OrderDetailsPage = () => {
                   {order.shipping_address.firstName} {order.shipping_address.lastName}
                 </p>
                 <p className="text-black/70 mt-1">{order.shipping_address.address}</p>
+                {order.shipping_address.apartment && (
+                  <p className="text-black/70">{order.shipping_address.apartment}</p>
+                )}
                 <p className="text-black/70">
                   {order.shipping_address.city}, {order.shipping_address.zipCode}
                 </p>

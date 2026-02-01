@@ -29,7 +29,10 @@ export function MenuList({ data, label }: MenuListProps) {
         {label}
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <div className="grid w-[600px] grid-cols-2 gap-0 p-0">
+        <div
+          className="grid w-[600px] grid-cols-2 gap-0 p-0"
+          onMouseLeave={() => setHoveredItemId(null)}
+        >
           {/* Left Column: Parent Categories */}
           <div className="bg-gray-50 border-r border-gray-200">
             <ul className="p-2">
@@ -41,7 +44,6 @@ export function MenuList({ data, label }: MenuListProps) {
                   <li
                     key={item.id}
                     onMouseEnter={() => setHoveredItemId(item.id)}
-                    onMouseLeave={() => setHoveredItemId(null)}
                   >
                     <Link
                       href={item.url ?? "/"}

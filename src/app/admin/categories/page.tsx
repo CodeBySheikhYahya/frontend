@@ -59,6 +59,93 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  // Group: parent categories first, then their subcategories
+  const parentCategories = categories
+    .filter((c) => !c.parent_id)
+    .sort((a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name));
+  const getChildren = (parentId: string) =>
+    categories
+      .filter((c) => c.parent_id === parentId)
+      .sort((a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name));
+
+  const renderCategoryRow = (category: Category, isSubcategory: boolean) => (
+    <tr key={category.id} className={cn("hover:bg-gray-50", isSubcategory && "bg-gray-50/50")}>
+      <td className={cn("px-6 py-4 whitespace-nowrap", isSubcategory && "pl-10")}>
+        <div className={cn("text-sm font-medium text-gray-900", isSubcategory && "flex items-center gap-2")}>
+          {isSubcategory && (
+            <span className="text-gray-400" aria-hidden>↳</span>
+          )}
+          {category.name}
+        </div>
+        {category.description && (
+          <div className="text-sm text-gray-500 truncate max-w-xs">
+            {category.description}
+          </div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-500">{category.slug}</div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {isSubcategory && category.parent_id
+          ? (parentCategories.find((p) => p.id === category.parent_id)?.name ?? "—")
+          : "—"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {category.display_order}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <span
+          className={cn(
+            "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+            category.is_active
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
+          )}
+        >
+          {category.is_active ? "Active" : "Inactive"}
+        </span>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        {new Date(category.created_at).toLocaleDateString()}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        <div className="flex items-center justify-end gap-2">
+          <Link href={`/admin/categories/${category.id}/attributes`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Manage Attributes"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Link href={`/admin/categories/${category.id}/edit`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Edit Category"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={() => handleDelete(category.id, category.name)}
+            disabled={deletingId === category.id}
+            title="Delete Category"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -130,77 +217,13 @@ export default function AdminCategoriesPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {categories.map((category) => (
-                  <tr key={category.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {category.name}
-                      </div>
-                      {category.description && (
-                        <div className="text-sm text-gray-500 truncate max-w-xs">
-                          {category.description}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{category.slug}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {category.parent?.name || "—"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {category.display_order}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={cn(
-                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                          category.is_active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        )}
-                      >
-                        {category.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(category.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/categories/${category.id}/attributes`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            title="Manage Attributes"
-                          >
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                        <Link href={`/admin/categories/${category.id}/edit`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            title="Edit Category"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleDelete(category.id, category.name)}
-                          disabled={deletingId === category.id}
-                          title="Delete Category"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
+                {parentCategories.map((parent) => (
+                  <React.Fragment key={parent.id}>
+                    {renderCategoryRow(parent, false)}
+                    {getChildren(parent.id).map((child) =>
+                      renderCategoryRow(child, true)
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

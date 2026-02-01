@@ -12,13 +12,6 @@ import { cn } from "@/lib/utils";
 import { z } from "zod";
 import { City } from "country-state-city";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -35,6 +28,7 @@ const shippingSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   address: z.string().min(1, "Address is required"),
+  apartment: z.string().optional(),
   city: z.string().min(1, "City is required"),
   zipCode: z.string().min(1, "ZIP code is required"),
   country: z.string().min(1, "Country is required"),
@@ -55,6 +49,7 @@ const CheckoutPage = () => {
     email: "",
     phone: "",
     address: "",
+    apartment: "",
     city: "",
     zipCode: "",
     country: "Pakistan",
@@ -62,6 +57,11 @@ const CheckoutPage = () => {
 
   // Get Pakistan cities
   const pakistanCities = City.getCitiesOfCountry("PK") || [];
+  const [citySearch, setCitySearch] = useState("");
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const filteredCities = pakistanCities.filter((c) =>
+    (c.name || "").toLowerCase().includes(citySearch.toLowerCase())
+  ).slice(0, 50);
 
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,6 +149,7 @@ const CheckoutPage = () => {
           email: shippingInfo.email,
           phone: shippingInfo.phone,
           address: shippingInfo.address,
+          apartment: shippingInfo.apartment || undefined,
           city: shippingInfo.city,
           zipCode: shippingInfo.zipCode,
           country: shippingInfo.country,
@@ -291,40 +292,64 @@ const CheckoutPage = () => {
                   <p className="text-red-500 text-sm mt-1">{errors.address}</p>
                 )}
               </div>
+              <div>
+                <InputGroup className="bg-[#F0F0F0]">
+                  <InputGroup.Input
+                    type="text"
+                    placeholder="Apartment, suite, etc. (optional)"
+                    value={shippingInfo.apartment ?? ""}
+                    onChange={(e) =>
+                      setShippingInfo({ ...shippingInfo, apartment: e.target.value })
+                    }
+                    className="bg-transparent"
+                  />
+                </InputGroup>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Select
-                    value={shippingInfo.city ? (() => {
-                      const cityIndex = pakistanCities.findIndex(c => c.name === shippingInfo.city);
-                      return cityIndex >= 0 
-                        ? `${shippingInfo.city}||${pakistanCities[cityIndex]?.stateCode || ''}||${cityIndex}`
-                        : shippingInfo.city;
-                    })() : undefined}
-                    onValueChange={(value) => {
-                      // Extract just the city name from the unique value
-                      const cityName = value.split('||')[0];
-                      setShippingInfo({ ...shippingInfo, city: cityName });
-                      if (errors.city) setErrors({ ...errors, city: undefined });
-                    }}
-                  >
-                    <SelectTrigger className="bg-[#F0F0F0] border-none h-11">
-                      <SelectValue placeholder="Select City" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
-                      {pakistanCities.map((city, index) => {
-                        // Create unique value by combining name with state and index
-                        const uniqueValue = `${city.name || ''}||${city.stateCode || ''}||${index}`;
-                        return (
-                          <SelectItem 
+                <div className="relative">
+                  <InputGroup className="bg-[#F0F0F0]">
+                    <InputGroup.Input
+                      type="text"
+                      placeholder="Search city..."
+                      value={cityDropdownOpen ? citySearch : shippingInfo.city}
+                      onChange={(e) => {
+                        setCitySearch(e.target.value);
+                        setCityDropdownOpen(true);
+                        if (!e.target.value) setShippingInfo({ ...shippingInfo, city: "" });
+                        if (errors.city) setErrors({ ...errors, city: undefined });
+                      }}
+                      onFocus={() => {
+                        setCitySearch(shippingInfo.city || "");
+                        setCityDropdownOpen(true);
+                      }}
+                      onBlur={() => setTimeout(() => setCityDropdownOpen(false), 200)}
+                      className="bg-transparent"
+                    />
+                  </InputGroup>
+                  {cityDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-black/10 rounded-md shadow-lg max-h-[220px] overflow-y-auto">
+                      {filteredCities.length > 0 ? (
+                        filteredCities.map((city, index) => (
+                          <button
                             key={`city-${index}`}
-                            value={uniqueValue}
+                            type="button"
+                            className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setShippingInfo({ ...shippingInfo, city: city.name || "" });
+                              setCitySearch(city.name || "");
+                              setCityDropdownOpen(false);
+                              if (errors.city) setErrors({ ...errors, city: undefined });
+                            }}
                           >
                             {city.name}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-black/60">No city found. Type to search.</div>
+                      )}
+                    </div>
+                  )}
                   {errors.city && (
                     <p className="text-red-500 text-sm mt-1">{errors.city}</p>
                   )}

@@ -144,6 +144,7 @@ export default function AdminOrdersPage() {
     if (!address) return "—";
     const parts = [
       address.address,
+      address.apartment,
       address.city,
       address.zipCode,
       address.country,

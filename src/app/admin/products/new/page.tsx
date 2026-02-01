@@ -10,7 +10,6 @@ import {
   createProduct,
   uploadProductImage,
   getCategories,
-  getBrands,
   getColors,
   getSizes,
   createColor,
@@ -64,7 +63,6 @@ export default function AddProductPage() {
   const [discountType, setDiscountType] = useState<"percentage" | "amount" | null>(null);
   const [discountValue, setDiscountValue] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [brandId, setBrandId] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isTopSelling, setIsTopSelling] = useState(false);
@@ -85,7 +83,6 @@ export default function AddProductPage() {
 
   // Options
   const [categories, setCategories] = useState<Array<{ id: string; name: string; parent_id: string | null; parent_name?: string | null }>>([]);
-  const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
   const [colors, setColors] = useState<Array<{ id: string; name: string; hex_code: string }>>([]);
   const [sizes, setSizes] = useState<Array<{ id: string; name: string }>>([]);
   
@@ -139,14 +136,12 @@ export default function AddProductPage() {
   };
 
   const fetchOptions = async () => {
-    const [cats, brs, cols, szs] = await Promise.all([
+    const [cats, cols, szs] = await Promise.all([
       getCategories(),
-      getBrands(),
       getColors(),
       getSizes(),
     ]);
     setCategories(cats);
-    setBrands(brs);
     setColors(cols);
     setSizes(szs);
   };
@@ -277,7 +272,7 @@ export default function AddProductPage() {
         discount_type: discountType,
         discount_value: discountValue ? parseFloat(discountValue) : undefined,
         category_id: categoryId || undefined,
-        brand_id: brandId || undefined,
+        brand_id: undefined,
         is_featured: isFeatured,
         is_new_arrival: isNewArrival,
         is_top_selling: isTopSelling,
@@ -544,47 +539,29 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Category & Brand */}
+        {/* Category */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
-            Category & Brand
+            Category
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.parent_name ? `${cat.parent_name} > ${cat.name}` : cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Brand
-              </label>
-              <select
-                className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
-                value={brandId}
-                onChange={(e) => setBrandId(e.target.value)}
-              >
-                <option value="">Select Brand</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+            <select
+              className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">Select Category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.parent_id
+                    ? `${cat.name} (${cat.parent_name ?? "—"})`
+                    : `${cat.name} (Parent)`}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

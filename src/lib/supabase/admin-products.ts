@@ -324,10 +324,9 @@ export async function deleteProductImage(
   }
 }
 
-// Get all categories
+// Get all categories (parents and subcategories) for product form
 export async function getCategories(): Promise<Array<{ id: string; name: string; parent_id: string | null; parent_name?: string | null }>> {
   try {
-    // Get all active categories with parent info
     const { data: allCategories, error: allError } = await supabase
       .from('categories')
       .select('id, name, parent_id, parent:categories!parent_id(id, name)')
@@ -340,27 +339,12 @@ export async function getCategories(): Promise<Array<{ id: string; name: string;
 
     if (!allCategories) return []
 
-    // Get all category IDs that have children (parent categories)
-    // Find categories that are referenced as parent_id by other categories
-    const { data: categoriesWithChildren } = await supabase
-      .from('categories')
-      .select('parent_id')
-      .not('parent_id', 'is', null)
-      .eq('is_active', true)
-
-    const parentIds = new Set(categoriesWithChildren?.map(c => c.parent_id).filter(Boolean) || [])
-
-    // Filter to only return child categories (categories that don't have children)
-    const childCategories = allCategories
-      .filter(cat => !parentIds.has(cat.id))
-      .map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        parent_id: cat.parent_id,
-        parent_name: (cat.parent as any)?.name || null,
-      }))
-
-    return childCategories
+    return allCategories.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      parent_id: cat.parent_id,
+      parent_name: (cat.parent as any)?.name || null,
+    }))
   } catch (error) {
     return []
   }

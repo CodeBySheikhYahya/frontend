@@ -219,6 +219,9 @@ export default function AdminOrderDetailsPage() {
                 <p className="text-black/60">{shippingAddress.email}</p>
                 <p className="text-black/60">{shippingAddress.phone}</p>
                 <p className="text-black/60">{shippingAddress.address}</p>
+                {shippingAddress.apartment && (
+                  <p className="text-black/60">{shippingAddress.apartment}</p>
+                )}
                 <p className="text-black/60">
                   {shippingAddress.city}, {shippingAddress.zipCode}
                 </p>
