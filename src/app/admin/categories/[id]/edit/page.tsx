@@ -42,10 +42,10 @@ export default function EditCategoryPage() {
   }, [categoryId]);
 
   useEffect(() => {
-    if (name && !slug) {
+    if (name) {
       setSlug(generateCategorySlug(name));
     }
-  }, [name, slug]);
+  }, [name]);
 
   const fetchCategory = async () => {
     setLoading(true);

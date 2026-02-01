@@ -147,10 +147,10 @@ export default function EditProductPage() {
   };
 
   useEffect(() => {
-    if (title && !slug) {
+    if (title) {
       setSlug(generateSlug(title));
     }
-  }, [title, slug]);
+  }, [title]);
 
   const fetchProduct = async () => {
     setLoading(true);

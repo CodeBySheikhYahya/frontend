@@ -95,10 +95,10 @@ export default function AddProductPage() {
   }, []);
 
   useEffect(() => {
-    if (title && !slug) {
+    if (title) {
       setSlug(generateSlug(title));
     }
-  }, [title, slug]);
+  }, [title]);
 
   // Fetch category attributes when category changes
   useEffect(() => {

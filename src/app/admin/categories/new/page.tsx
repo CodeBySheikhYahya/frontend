@@ -36,10 +36,10 @@ export default function AddCategoryPage() {
   }, []);
 
   useEffect(() => {
-    if (name && !slug) {
+    if (name) {
       setSlug(generateCategorySlug(name));
     }
-  }, [name, slug]);
+  }, [name]);
 
   const fetchCategories = async () => {
     try {
