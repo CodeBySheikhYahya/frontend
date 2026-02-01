@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchProducts } from '@/lib/supabase/products';
 
+// Prevent caching so search always returns fresh prices/data (fixes Vercel showing old price in search)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('q');
