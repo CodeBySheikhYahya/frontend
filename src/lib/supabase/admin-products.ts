@@ -284,7 +284,7 @@ export async function deleteProductImage(
   imageId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Get image URL first to delete from storage
+    // Get image URL first (optional - for storage cleanup)
     const { data: image, error: fetchError } = await supabase
       .from('product_images')
       .select('image_url')
@@ -295,27 +295,44 @@ export async function deleteProductImage(
       return { success: false, error: fetchError.message }
     }
 
-    // Extract file path from URL
-    const url = new URL(image.image_url)
-    const pathParts = url.pathname.split('/')
-    // Find the index after 'product-images' bucket name
-    const bucketIndex = pathParts.indexOf('product-images')
-    // Get path after bucket name (skip bucket name itself)
-    const filePath = bucketIndex >= 0 
-      ? pathParts.slice(bucketIndex + 1).join('/')
-      : pathParts[pathParts.length - 1]
+    if (!image) {
+      return { success: false, error: 'Image not found' }
+    }
 
-    // Delete from storage
-    await supabase.storage.from('product-images').remove([filePath])
+    // Delete from storage only if it's a full URL (Supabase storage)
+    const imageUrl = image.image_url || ''
+    if (imageUrl.startsWith('http')) {
+      try {
+        const url = new URL(imageUrl)
+        const pathParts = url.pathname.split('/')
+        const bucketIndex = pathParts.indexOf('product-images')
+        const filePath = bucketIndex >= 0
+          ? pathParts.slice(bucketIndex + 1).join('/')
+          : pathParts[pathParts.length - 1]
+        if (filePath) {
+          await supabase.storage.from('product-images').remove([filePath])
+        }
+      } catch {
+        // Skip storage delete if URL parsing fails (e.g. external URL)
+      }
+    }
 
-    // Delete from database
-    const { error: deleteError } = await supabase
+    // Delete from database and verify a row was actually deleted (handles RLS)
+    const { data: deleted, error: deleteError } = await supabase
       .from('product_images')
       .delete()
       .eq('id', imageId)
+      .select('id')
 
     if (deleteError) {
       return { success: false, error: deleteError.message }
+    }
+
+    if (!deleted || deleted.length === 0) {
+      return {
+        success: false,
+        error: 'Image could not be deleted. Check that Row Level Security (RLS) allows delete on product_images.',
+      }
     }
 
     return { success: true }

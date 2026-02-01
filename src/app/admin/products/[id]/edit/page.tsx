@@ -70,7 +70,6 @@ export default function EditProductPage() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [discountType, setDiscountType] = useState<"percentage" | "amount" | null>(null);
   const [discountValue, setDiscountValue] = useState("");
@@ -165,7 +164,6 @@ export default function EditProductPage() {
       setTitle(product.title);
       setSlug(product.slug);
       setDescription(product.description || "");
-      setShortDescription(product.short_description || "");
       setBasePrice(product.base_price.toString());
       setDiscountType(product.discount_type);
       setDiscountValue(product.discount_value?.toString() || "");
@@ -379,7 +377,6 @@ export default function EditProductPage() {
         title,
         slug: slug || generateSlug(title),
         description: description || undefined,
-        short_description: shortDescription || undefined,
         base_price: parseFloat(basePrice),
         discount_type: discountType,
         discount_value: discountValue ? parseFloat(discountValue) : undefined,
@@ -583,20 +580,6 @@ export default function EditProductPage() {
                   onChange={(e) => setSlug(e.target.value)}
                   required
                   placeholder="product-slug"
-                />
-              </InputGroup>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Short Description
-              </label>
-              <InputGroup className="bg-[#F0F0F0]">
-                <InputGroup.Input
-                  type="text"
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="Brief product description"
                 />
               </InputGroup>
             </div>

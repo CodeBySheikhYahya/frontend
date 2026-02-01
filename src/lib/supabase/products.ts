@@ -33,6 +33,7 @@ function transformProduct(dbProduct: any): Product {
     discount: discount,
     rating: Number(dbProduct.average_rating || 0),
     variants: variants,
+    description: dbProduct.description ?? undefined,
   }
 }
 

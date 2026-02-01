@@ -27,4 +27,5 @@ export type Product = {
   discount: Discount;
   rating: number;
   variants?: ProductVariant[];
+  description?: string | null;
 };
