@@ -534,6 +534,83 @@ export async function createSize(
   }
 }
 
+// Update color
+export async function updateColor(
+  id: string,
+  data: { name: string; hex_code: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('colors')
+      .update({
+        name: data.name.trim(),
+        hex_code: data.hex_code.trim(),
+      })
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to update color' }
+  }
+}
+
+// Update size
+export async function updateSize(
+  id: string,
+  data: { name: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('sizes')
+      .update({ name: data.name.trim() })
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to update size' }
+  }
+}
+
+// Delete color (fails if any product variant uses it)
+export async function deleteColor(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('colors').delete().eq('id', id)
+
+    if (error) {
+      if (error.code === '23503') {
+        return { success: false, error: 'Cannot delete: this color is used by one or more products.' }
+      }
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to delete color' }
+  }
+}
+
+// Delete size (fails if any product variant uses it)
+export async function deleteSize(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('sizes').delete().eq('id', id)
+
+    if (error) {
+      if (error.code === '23503') {
+        return { success: false, error: 'Cannot delete: this size is used by one or more products.' }
+      }
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to delete size' }
+  }
+}
+
 // Create or update product variant
 export interface VariantData {
   product_id: string

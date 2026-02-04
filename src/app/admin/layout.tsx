@@ -15,6 +15,7 @@ import {
   Folder,
   Tag,
   Mail,
+  Palette,
   // Layout, // Commented out - Product Tabs feature disabled
 } from "lucide-react";
 import { isAdmin } from "@/lib/supabase/admin";
@@ -35,6 +36,11 @@ const adminNavItems = [
     label: "Properties",
     href: "/admin/attributes",
     icon: Tag,
+  },
+  {
+    label: "Sizes & Colors",
+    href: "/admin/sizes-colors",
+    icon: Palette,
   },
   {
     label: "Products",
