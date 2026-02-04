@@ -76,9 +76,9 @@ const Header = ({ data }: { data: Product }) => {
               )
             )}
           </div>
-          {(data.description ?? "").trim() ? (
+          {(data.short_description ?? "").trim() ? (
             <p className="text-sm sm:text-base text-black/60 mb-5 whitespace-pre-line">
-              {data.description}
+              {data.short_description}
             </p>
           ) : null}
           <hr className="h-[1px] border-t-black/10 mb-5" />

@@ -69,6 +69,7 @@ export default function EditProductPage() {
   // Form data
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [discountType, setDiscountType] = useState<"percentage" | "amount" | null>(null);
@@ -163,6 +164,7 @@ export default function EditProductPage() {
 
       setTitle(product.title);
       setSlug(product.slug);
+      setShortDescription(product.short_description || "");
       setDescription(product.description || "");
       setBasePrice(product.base_price.toString());
       setDiscountType(product.discount_type);
@@ -376,6 +378,7 @@ export default function EditProductPage() {
       const productData = {
         title,
         slug: slug || generateSlug(title),
+        short_description: shortDescription || undefined,
         description: description || undefined,
         base_price: parseFloat(basePrice),
         discount_type: discountType,
@@ -584,6 +587,18 @@ export default function EditProductPage() {
               </InputGroup>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Short description
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
+                value={shortDescription}
+                onChange={(e) => setShortDescription(e.target.value)}
+                placeholder="One line under the price (e.g. soft comfy fabric)"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description

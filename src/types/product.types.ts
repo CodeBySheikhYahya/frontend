@@ -28,4 +28,5 @@ export type Product = {
   rating: number;
   variants?: ProductVariant[];
   description?: string | null;
+  short_description?: string | null;
 };

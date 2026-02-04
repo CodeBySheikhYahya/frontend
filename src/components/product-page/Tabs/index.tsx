@@ -6,13 +6,15 @@ import React, { useState, useEffect } from "react";
 import ProductDetailsContent from "./ProductDetailsContent";
 import ReviewsContent from "./ReviewsContent";
 import FaqContent from "./FaqContent";
+import DescriptionContent from "./DescriptionContent";
 import { getProductTabs, type ProductTab } from "@/lib/supabase/products";
 
 interface TabsProps {
   productId: string;
+  description?: string | null;
 }
 
-const Tabs = ({ productId }: TabsProps) => {
+const Tabs = ({ productId, description }: TabsProps) => {
   const [tabs, setTabs] = useState<ProductTab[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -23,25 +25,34 @@ const Tabs = ({ productId }: TabsProps) => {
         const tabsData = await getProductTabs();
         setTabs(tabsData);
         if (tabsData.length > 0) {
-          setActiveTab(tabsData[0].tab_key);
+          const visible = (description ?? "").trim()
+            ? tabsData
+            : tabsData.filter((t) => t.tab_key !== "description");
+          setActiveTab(visible[0]?.tab_key ?? tabsData[0].tab_key);
         }
       } catch (error) {
         console.error("Error fetching tabs:", error);
         // Fallback to default tabs
         const defaultTabs: ProductTab[] = [
+          { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },
           { id: '1', tab_key: 'details', display_name: 'Product Details', component_type: 'details', display_order: 1, is_active: true, is_required: true },
           { id: '2', tab_key: 'reviews', display_name: 'Rating & Reviews', component_type: 'reviews', display_order: 2, is_active: true, is_required: false },
           { id: '3', tab_key: 'faq', display_name: 'FAQs', component_type: 'faq', display_order: 3, is_active: true, is_required: false },
         ];
         setTabs(defaultTabs);
-        setActiveTab('details');
+        const hasDesc = (description ?? "").trim();
+        setActiveTab(hasDesc ? "description" : "details");
       } finally {
         setLoading(false);
       }
     };
 
     fetchTabs();
-  }, []);
+  }, [description]);
+
+  const visibleTabs = (description ?? "").trim()
+    ? tabs
+    : tabs.filter((t) => t.tab_key !== "description");
 
   const renderTabContent = () => {
     if (!activeTab) return null;
@@ -50,6 +61,8 @@ const Tabs = ({ productId }: TabsProps) => {
     if (!activeTabData) return null;
 
     switch (activeTabData.component_type) {
+      case "description":
+        return description ? <DescriptionContent description={description} /> : null;
       case "details":
         return <ProductDetailsContent productId={productId} />;
       case "reviews":
@@ -72,14 +85,14 @@ const Tabs = ({ productId }: TabsProps) => {
     );
   }
 
-  if (tabs.length === 0) {
+  if (visibleTabs.length === 0) {
     return null;
   }
 
   return (
     <div>
       <div className="flex items-center mb-6 sm:mb-8 overflow-x-auto">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <Button
             key={tab.id}
             variant="ghost"
@@ -96,7 +109,7 @@ const Tabs = ({ productId }: TabsProps) => {
           </Button>
         ))}
       </div>
-      <div className="mb-12 sm:mb-16">
+      <div className="mb-12 sm:mb-16 min-w-0 overflow-hidden">
         {renderTabContent()}
       </div>
     </div>

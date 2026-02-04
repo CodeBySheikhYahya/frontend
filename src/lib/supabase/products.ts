@@ -34,6 +34,7 @@ function transformProduct(dbProduct: any): Product {
     rating: Number(dbProduct.average_rating || 0),
     variants: variants,
     description: dbProduct.description ?? undefined,
+    short_description: dbProduct.short_description ?? undefined,
   }
 }
 
@@ -244,6 +245,7 @@ export async function getProductTabs(): Promise<ProductTab[]> {
       console.error('Error fetching product tabs:', error)
       // Return default tabs if table doesn't exist yet
       return [
+        { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },
         { id: '1', tab_key: 'details', display_name: 'Product Details', component_type: 'details', display_order: 1, is_active: true, is_required: true },
         { id: '2', tab_key: 'reviews', display_name: 'Rating & Reviews', component_type: 'reviews', display_order: 2, is_active: true, is_required: false },
         { id: '3', tab_key: 'faq', display_name: 'FAQs', component_type: 'faq', display_order: 3, is_active: true, is_required: false },
@@ -255,6 +257,7 @@ export async function getProductTabs(): Promise<ProductTab[]> {
     console.error('Error fetching product tabs:', error)
     // Return default tabs on error
     return [
+      { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },
       { id: '1', tab_key: 'details', display_name: 'Product Details', component_type: 'details', display_order: 1, is_active: true, is_required: true },
       { id: '2', tab_key: 'reviews', display_name: 'Rating & Reviews', component_type: 'reviews', display_order: 2, is_active: true, is_required: false },
       { id: '3', tab_key: 'faq', display_name: 'FAQs', component_type: 'faq', display_order: 3, is_active: true, is_required: false },
