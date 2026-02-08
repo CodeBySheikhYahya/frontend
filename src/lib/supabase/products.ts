@@ -35,6 +35,8 @@ function transformProduct(dbProduct: any): Product {
     variants: variants,
     description: dbProduct.description ?? undefined,
     short_description: dbProduct.short_description ?? undefined,
+    size_chart_image_url: dbProduct.size_chart_image_url ?? undefined,
+    size_type: dbProduct.size_type ?? undefined,
   }
 }
 

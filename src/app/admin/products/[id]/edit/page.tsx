@@ -10,6 +10,7 @@ import {
   getAdminProductById,
   updateProduct,
   uploadProductImage,
+  uploadSizeChartImage,
   deleteProductImage,
   getCategories,
   getColors,
@@ -80,6 +81,10 @@ export default function EditProductPage() {
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isTopSelling, setIsTopSelling] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [sizeType, setSizeType] = useState<'clothing' | 'shoes' | 'bags' | null>(null);
+  const [sizeChartImageUrl, setSizeChartImageUrl] = useState<string>("");
+  const [sizeChartFile, setSizeChartFile] = useState<File | null>(null);
+  const [sizeChartPreview, setSizeChartPreview] = useState<string>("");
 
   // Images
   const [existingImages, setExistingImages] = useState<
@@ -167,6 +172,8 @@ export default function EditProductPage() {
       setShortDescription(product.short_description || "");
       setDescription(product.description || "");
       setBasePrice(product.base_price.toString());
+      setSizeType(product.size_type || null);
+      setSizeChartImageUrl(product.size_chart_image_url || "");
       setDiscountType(product.discount_type);
       setDiscountValue(product.discount_value?.toString() || "");
       setCategoryId(product.category_id || "");
@@ -391,6 +398,7 @@ export default function EditProductPage() {
         slug: slug || generateSlug(title),
         short_description: shortDescription || undefined,
         description: description || undefined,
+        size_type: sizeType || undefined,
         base_price: parseFloat(basePrice),
         discount_type: discountType,
         discount_value: discountValue ? parseFloat(discountValue) : undefined,
@@ -423,6 +431,24 @@ export default function EditProductPage() {
       if (primaryImageId) {
         // This would require updating all images to set is_primary
         // For now, we'll handle it in the upload function
+      }
+
+      // Upload size chart image if provided
+      if (sizeChartFile) {
+        const chartResult = await uploadSizeChartImage(sizeChartFile, productId);
+        if (chartResult.success && chartResult.imageUrl) {
+          // Update product with chart URL
+          await updateProduct(productId, {
+            size_chart_image_url: chartResult.imageUrl,
+          });
+        } else {
+          alert(`Error uploading size chart: ${chartResult.error}`);
+        }
+      } else if (sizeChartImageUrl) {
+        // If no new file but URL exists, keep existing URL
+        await updateProduct(productId, {
+          size_chart_image_url: sizeChartImageUrl,
+        });
       }
 
       // Save variants
@@ -751,6 +777,82 @@ export default function EditProductPage() {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        {/* Size Chart */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
+            Size Chart
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Size Type *
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
+                value={sizeType || ""}
+                onChange={(e) =>
+                  setSizeType(
+                    e.target.value === "" ? null : (e.target.value as 'clothing' | 'shoes' | 'bags')
+                  )
+                }
+              >
+                <option value="">Select Size Type</option>
+                <option value="clothing">Clothing (needs chart)</option>
+                <option value="shoes">Shoes (numbers only)</option>
+                <option value="bags">Bags (needs chart)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Clothing & Bags: Show size chart popup. Shoes: Only number sizes.
+              </p>
+            </div>
+
+            {(sizeType === 'clothing' || sizeType === 'bags') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Size Chart Image
+                </label>
+                {sizeChartPreview && (
+                  <div className="mb-3">
+                    <img
+                      src={sizeChartPreview}
+                      alt="Size chart preview"
+                      className="max-w-full h-auto max-h-64 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                )}
+                {sizeChartImageUrl && !sizeChartPreview && (
+                  <div className="mb-3">
+                    <img
+                      src={sizeChartImageUrl}
+                      alt="Current size chart"
+                      className="max-w-full h-auto max-h-64 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full px-4 py-3 bg-[#F0F0F0] rounded-full border-0 focus:outline-none focus:ring-2 focus:ring-black"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setSizeChartFile(file);
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setSizeChartPreview(reader.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload a size chart image showing measurements for each size.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -5,15 +5,20 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
 import { RootState } from "@/lib/store";
 import { Product } from "@/types/product.types";
 import { cn } from "@/lib/utils";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { Ruler } from "lucide-react";
+import SizeChartPopup from "./SizeChartPopup";
 
 const SizeSelection = ({ product }: { product: Product }) => {
   const { sizeSelection } = useAppSelector(
     (state: RootState) => state.products
   );
   const dispatch = useAppDispatch();
+  const [showChart, setShowChart] = useState(false);
 
   const { colorSelection } = useAppSelector((state: RootState) => state.products);
+  
+  const showSizeChart = (product.size_type === 'clothing' || product.size_type === 'bags') && product.size_chart_image_url;
 
   // Get unique sizes from product variants with stock info
   const availableSizes = useMemo(() => {
@@ -68,9 +73,21 @@ const SizeSelection = ({ product }: { product: Product }) => {
 
   return (
     <div className="flex flex-col">
-      <span className="text-sm sm:text-base text-black/60 mb-4">
-        Choose Size
-      </span>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm sm:text-base text-black/60">
+          Choose Size
+        </span>
+        {showSizeChart && (
+          <button
+            type="button"
+            onClick={() => setShowChart(true)}
+            className="flex items-center gap-1.5 text-sm text-black/60 hover:text-black transition-colors"
+          >
+            <Ruler className="w-4 h-4" />
+            <span>Size Chart</span>
+          </button>
+        )}
+      </div>
       <div className="flex items-center flex-wrap lg:space-x-3">
         {availableSizes.map((size, index) => {
           const isSelected = sizeSelection === size.name;
@@ -103,6 +120,13 @@ const SizeSelection = ({ product }: { product: Product }) => {
           );
         })}
       </div>
+      {showSizeChart && product.size_chart_image_url && (
+        <SizeChartPopup
+          chartImageUrl={product.size_chart_image_url}
+          isOpen={showChart}
+          onClose={() => setShowChart(false)}
+        />
+      )}
     </div>
   );
 };

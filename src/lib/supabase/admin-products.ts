@@ -18,6 +18,8 @@ export interface AdminProduct {
   is_active: boolean
   meta_title: string | null
   meta_description: string | null
+  size_chart_image_url: string | null
+  size_type: 'clothing' | 'shoes' | 'bags' | null
   created_at: string
   updated_at: string
   category?: { id: string; name: string } | null
@@ -143,6 +145,8 @@ export interface CreateProductData {
   is_active?: boolean
   meta_title?: string | null
   meta_description?: string | null
+  size_chart_image_url?: string | null
+  size_type?: 'clothing' | 'shoes' | 'bags' | null
 }
 
 export async function createProduct(
@@ -276,6 +280,40 @@ export async function uploadProductImage(
     return { success: true, imageUrl }
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to upload image' }
+  }
+}
+
+// Upload size chart image to Supabase Storage
+export async function uploadSizeChartImage(
+  file: File,
+  productId: string
+): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+  try {
+    // Generate unique filename
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${productId}/size-chart.${fileExt}`
+    const filePath = fileName
+
+    // Upload to Supabase Storage (size-charts bucket)
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('size-charts')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true, // Replace if exists
+      })
+
+    if (uploadError) {
+      return { success: false, error: uploadError.message }
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('size-charts')
+      .getPublicUrl(filePath)
+
+    return { success: true, imageUrl: urlData.publicUrl }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to upload size chart' }
   }
 }
 

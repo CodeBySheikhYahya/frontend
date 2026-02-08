@@ -29,4 +29,6 @@ export type Product = {
   variants?: ProductVariant[];
   description?: string | null;
   short_description?: string | null;
+  size_chart_image_url?: string | null;
+  size_type?: 'clothing' | 'shoes' | 'bags' | null;
 };
