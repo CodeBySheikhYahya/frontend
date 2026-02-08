@@ -226,6 +226,17 @@ export default function EditProductPage() {
       } else {
         console.log("No variants found for product");
       }
+
+      // Load specifications
+      const specs = await getProductSpecifications(productId);
+      setSpecifications(
+        specs.map((s) => ({
+          id: s.id,
+          key: s.spec_key,
+          value: s.spec_value,
+          order: s.display_order,
+        }))
+      );
     } catch (error) {
       alert("Failed to load product");
     } finally {
@@ -519,6 +530,42 @@ export default function EditProductPage() {
       }
       
       console.log("=== END VARIANT SAVE DEBUG ===\n");
+
+      // Save specifications
+      // First, get existing specs to know which to delete
+      const existingSpecs = await getProductSpecifications(productId);
+      const existingSpecIds = new Set(existingSpecs.map((s) => s.id));
+      const newSpecIds = new Set(
+        specifications.filter((s) => s.id).map((s) => s.id!)
+      );
+
+      // Delete specs that were removed
+      for (const existingSpec of existingSpecs) {
+        if (!newSpecIds.has(existingSpec.id)) {
+          await deleteProductSpecification(existingSpec.id);
+        }
+      }
+
+      // Create or update specs
+      for (const spec of specifications) {
+        if (spec.key && spec.value) {
+          if (spec.id) {
+            // Update existing spec
+            await updateProductSpecification(spec.id, {
+              spec_key: spec.key,
+              spec_value: spec.value,
+              display_order: spec.order,
+            });
+          } else {
+            // Create new spec
+            await createProductSpecification(productId, {
+              spec_key: spec.key,
+              spec_value: spec.value,
+              display_order: spec.order,
+            });
+          }
+        }
+      }
 
       router.push("/admin/products");
     } catch (error) {
