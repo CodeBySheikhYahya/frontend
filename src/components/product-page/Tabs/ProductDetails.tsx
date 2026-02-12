@@ -48,22 +48,14 @@ const ProductDetails = ({ productId }: ProductDetailsProps) => {
   }
 
   return (
-    <>
+    <div className="space-y-3">
       {specs.map((spec) => (
-        <div className="grid grid-cols-3" key={spec.id}>
-          <div>
-            <p className="text-sm py-3 w-full leading-7 lg:py-4 pr-2 text-neutral-500">
-              {spec.spec_key}
-            </p>
-          </div>
-          <div className="col-span-2 py-3 lg:py-4 border-b">
-            <p className="text-sm w-full leading-7 text-neutral-800 font-medium">
-              {spec.spec_value}
-            </p>
-          </div>
-        </div>
+        <p key={spec.id} className="text-sm leading-7 break-words">
+          <span className="text-neutral-800 font-medium">{spec.spec_key}</span>
+          <span className="text-neutral-800 font-medium"> — {spec.spec_value}</span>
+        </p>
       ))}
-    </>
+    </div>
   );
 };
 

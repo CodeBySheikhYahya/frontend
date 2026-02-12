@@ -18,7 +18,7 @@ const SizeSelection = ({ product }: { product: Product }) => {
 
   const { colorSelection } = useAppSelector((state: RootState) => state.products);
   
-  const showSizeChart = (product.size_type === 'clothing' || product.size_type === 'bags') && product.size_chart_image_url;
+  const showSizeChart = !!product.size_chart_image_url;
 
   // Get unique sizes from product variants with stock info
   const availableSizes = useMemo(() => {

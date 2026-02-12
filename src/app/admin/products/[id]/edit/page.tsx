@@ -536,22 +536,18 @@ export default function EditProductPage() {
           }
         } else {
           console.log("Using legacy color_id/size_id system");
-          // Fallback to legacy color_id/size_id system
-          if (variant.color_id && variant.size_id) {
-            const variantData = {
-              product_id: productId,
-              color_id: variant.color_id,
-              size_id: variant.size_id,
-              stock_quantity: variant.stock_quantity,
-              price_override: variant.price_override ? parseFloat(variant.price_override) : null,
-              is_active: variant.is_active,
-            }
-            
-            console.log("Saving legacy variant:", variantData);
-            await upsertVariant(variant.id || null, variantData)
-          } else {
-            console.log("❌ Skipping variant - missing color_id or size_id");
+          // Fallback to legacy color_id/size_id system - size is optional
+          const variantData = {
+            product_id: productId,
+            color_id: variant.color_id || null,
+            size_id: variant.size_id || null,
+            stock_quantity: variant.stock_quantity,
+            price_override: variant.price_override ? parseFloat(variant.price_override) : null,
+            is_active: variant.is_active,
           }
+          
+          console.log("Saving legacy variant:", variantData);
+          await upsertVariant(variant.id || null, variantData);
         }
       }
       
@@ -1150,7 +1146,7 @@ export default function EditProductPage() {
                       {/* Legacy Size Field */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Size *
+                      Size (optional)
                     </label>
                     <select
                       className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
@@ -1162,9 +1158,8 @@ export default function EditProductPage() {
                           updateVariant(index, "size_id", e.target.value);
                         }
                       }}
-                      required={!variant.size_id || variant.size_id !== "new"}
                     >
-                      <option value="">Select Size</option>
+                      <option value="">Select Size (optional)</option>
                       <option value="new">+ Add New Size</option>
                       {sizes.map((size) => (
                         <option key={size.id} value={size.id}>

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import Rating from "@/components/ui/Rating";
 import ColorSelection from "./ColorSelection";
 import SizeSelection from "./SizeSelection";
+import SizeChartButton from "./SizeChartButton";
 import AddToCardSection from "./AddToCardSection";
 
 const Header = ({ data }: { data: Product }) => {
@@ -83,8 +84,17 @@ const Header = ({ data }: { data: Product }) => {
           ) : null}
           <hr className="h-[1px] border-t-black/10 mb-5" />
           <ColorSelection product={data} />
-          <hr className="h-[1px] border-t-black/10 my-5" />
-          <SizeSelection product={data} />
+          {data.variants?.some((v) => v.size) ? (
+            <>
+              <hr className="h-[1px] border-t-black/10 my-5" />
+              <SizeSelection product={data} />
+            </>
+          ) : data.size_chart_image_url ? (
+            <>
+              <hr className="h-[1px] border-t-black/10 my-5" />
+              <SizeChartButton chartImageUrl={data.size_chart_image_url} />
+            </>
+          ) : null}
           <hr className="hidden md:block h-[1px] border-t-black/10 my-5" />
           <AddToCardSection data={data} />
         </div>

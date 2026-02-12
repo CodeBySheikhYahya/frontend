@@ -13,22 +13,35 @@ const AddToCartBtn = ({ data, product }: { data: Product & { quantity: number };
     (state: RootState) => state.products
   );
 
-  // Find selected variant and check stock
+  // Check if product has size variants
+  const hasSizes = React.useMemo(() => {
+    const variants = product.variants || data.variants || [];
+    return variants.some((v) => v.size && v.is_active !== false);
+  }, [product.variants, data.variants]);
+
+  // Check if product has color variants
+  const hasColors = React.useMemo(() => {
+    const variants = product.variants || data.variants || [];
+    return variants.some((v) => v.color && v.is_active !== false);
+  }, [product.variants, data.variants]);
+
+  // Find selected variant and check stock (size and color are optional - match when not applicable)
   const selectedVariant = React.useMemo(() => {
     const variants = product.variants || data.variants || [];
-    if (!variants.length || !colorSelection.name || !sizeSelection) return null;
+    if (!variants.length) return null;
     
     return variants.find(
-      (variant) =>
-        variant.color?.name === colorSelection.name &&
-        variant.size?.name === sizeSelection &&
-        variant.is_active !== false
+      (variant) => {
+        const matchesColor = !hasColors || variant.color?.name === colorSelection.name;
+        const matchesSize = !hasSizes || variant.size?.name === sizeSelection;
+        return matchesColor && matchesSize && variant.is_active !== false;
+      }
     );
-  }, [product.variants, data.variants, colorSelection.name, sizeSelection]);
+  }, [product.variants, data.variants, colorSelection.name, sizeSelection, hasColors, hasSizes]);
 
   const stockQuantity = selectedVariant ? (selectedVariant.stock_quantity || 0) : 0;
   const isOutOfStock = stockQuantity === 0;
-  const hasSelection = colorSelection.name && sizeSelection;
+  const hasSelection = (!hasColors || colorSelection.name) && (!hasSizes || sizeSelection);
 
   const handleAddToCart = () => {
     if (isOutOfStock || !hasSelection) return;
@@ -46,7 +59,10 @@ const AddToCartBtn = ({ data, product }: { data: Product & { quantity: number };
       name: data.title,
       srcUrl: data.srcUrl,
       price: data.price,
-      attributes: [sizeSelection, colorSelection.name],
+      attributes: [
+        hasSizes ? sizeSelection : '',
+        hasColors ? colorSelection.name : '',
+      ],
       discount: data.discount,
       quantity: data.quantity,
     };
