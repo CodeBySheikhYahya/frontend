@@ -29,7 +29,6 @@ export default function AdminAttributesPage() {
       const data = await getAllAttributes();
       setAttributes(data);
     } catch (error) {
-      console.error("Error fetching attributes:", error);
     } finally {
       setLoading(false);
     }

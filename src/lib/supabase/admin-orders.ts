@@ -25,15 +25,18 @@ export interface AdminOrder {
   notes: string | null
 }
 
-// Get all orders for admin
+// Get all orders for admin (with pagination)
 export async function getAllAdminOrders(
-  statusFilter?: OrderStatus | 'all'
+  statusFilter?: OrderStatus | 'all',
+  limit: number = 50,
+  offset: number = 0
 ): Promise<AdminOrder[]> {
   try {
     let query = supabase
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (statusFilter && statusFilter !== 'all') {
       query = query.eq('status', statusFilter)
@@ -61,44 +64,19 @@ export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
-  console.log("=== updateOrderStatus FUNCTION ===");
-  console.log("Order ID:", orderId);
-  console.log("New Status:", status);
-  console.log("Status type:", typeof status);
-  
   try {
-    const updateData = { 
-      status,
-      updated_at: new Date().toISOString()
-    };
-    console.log("Update data:", updateData);
-    
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('orders')
-      .update(updateData)
+      .update({ status, updated_at: new Date().toISOString() })
       .eq('id', orderId)
       .select()
 
-    console.log("Supabase response - data:", data);
-    console.log("Supabase response - error:", error);
-    
     if (error) {
-      console.error("❌ Supabase error:", error);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
-      console.error("Error details:", error.details);
-      console.error("Error hint:", error.hint);
       return { success: false, error: error.message }
     }
 
-    console.log("✅ Update successful");
-    console.log("=== END updateOrderStatus FUNCTION ===");
     return { success: true }
   } catch (error: any) {
-    console.error("❌ Exception in updateOrderStatus:", error);
-    console.error("Exception message:", error?.message);
-    console.error("Exception stack:", error?.stack);
-    console.log("=== END updateOrderStatus FUNCTION ===");
     return { success: false, error: error.message || 'Failed to update order status' }
   }
 }
@@ -108,45 +86,19 @@ export async function updatePaymentStatus(
   orderId: string,
   paymentStatus: PaymentStatus
 ): Promise<{ success: boolean; error?: string }> {
-  console.log("=== updatePaymentStatus FUNCTION ===");
-  console.log("Order ID:", orderId);
-  console.log("New Payment Status:", paymentStatus);
-  console.log("Payment Status type:", typeof paymentStatus);
-  
   try {
-    const updateData = { 
-      payment_status: paymentStatus,
-      updated_at: new Date().toISOString()
-    };
-    console.log("Update data:", updateData);
-    
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('orders')
-      .update(updateData)
+      .update({ payment_status: paymentStatus, updated_at: new Date().toISOString() })
       .eq('id', orderId)
       .select()
 
-    console.log("Supabase response - data:", data);
-    console.log("Supabase response - error:", error);
-    
     if (error) {
-      console.error("❌ Supabase error:", error);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
-      console.error("Error details:", error.details);
-      console.error("Error hint:", error.hint);
-      console.log("=== END updatePaymentStatus FUNCTION ===");
       return { success: false, error: error.message }
     }
 
-    console.log("✅ Payment status update successful");
-    console.log("=== END updatePaymentStatus FUNCTION ===");
     return { success: true }
   } catch (error: any) {
-    console.error("❌ Exception in updatePaymentStatus:", error);
-    console.error("Exception message:", error?.message);
-    console.error("Exception stack:", error?.stack);
-    console.log("=== END updatePaymentStatus FUNCTION ===");
     return { success: false, error: error.message || 'Failed to update payment status' }
   }
 }
@@ -175,7 +127,7 @@ export async function updateOrderNotes(
   }
 }
 
-// Get order statistics
+// Get order statistics using parallel count queries instead of full table scan
 export async function getOrderStats(): Promise<{
   total: number
   pending: number
@@ -185,43 +137,37 @@ export async function getOrderStats(): Promise<{
   cancelled: number
   refunded: number
 }> {
-  try {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('status')
+  const zero = { total: 0, pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0, refunded: 0 }
 
-    if (error) {
-      return {
-        total: 0,
-        pending: 0,
-        processing: 0,
-        shipped: 0,
-        delivered: 0,
-        cancelled: 0,
-        refunded: 0,
-      }
+  try {
+    const countQuery = (status?: OrderStatus) => {
+      let q = supabase.from('orders').select('*', { count: 'exact', head: true })
+      if (status) q = q.eq('status', status)
+      return q
     }
 
-    const orders = data || []
+    const [total, pending, processing, shipped, delivered, cancelled, refunded] =
+      await Promise.all([
+        countQuery(),
+        countQuery('pending'),
+        countQuery('processing'),
+        countQuery('shipped'),
+        countQuery('delivered'),
+        countQuery('cancelled'),
+        countQuery('refunded'),
+      ])
+
     return {
-      total: orders.length,
-      pending: orders.filter((o) => o.status === 'pending').length,
-      processing: orders.filter((o) => o.status === 'processing').length,
-      shipped: orders.filter((o) => o.status === 'shipped').length,
-      delivered: orders.filter((o) => o.status === 'delivered').length,
-      cancelled: orders.filter((o) => o.status === 'cancelled').length,
-      refunded: orders.filter((o) => o.status === 'refunded').length,
+      total: total.count ?? 0,
+      pending: pending.count ?? 0,
+      processing: processing.count ?? 0,
+      shipped: shipped.count ?? 0,
+      delivered: delivered.count ?? 0,
+      cancelled: cancelled.count ?? 0,
+      refunded: refunded.count ?? 0,
     }
   } catch (error) {
-    return {
-      total: 0,
-      pending: 0,
-      processing: 0,
-      shipped: 0,
-      delivered: 0,
-      cancelled: 0,
-      refunded: 0,
-    }
+    return zero
   }
 }
 

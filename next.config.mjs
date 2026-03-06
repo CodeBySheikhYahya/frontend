@@ -9,6 +9,14 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'react-icons',
+      '@radix-ui/react-icons',
+      'framer-motion',
+    ],
+  },
   async headers() {
     return [
       {

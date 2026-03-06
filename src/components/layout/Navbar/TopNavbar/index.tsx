@@ -90,7 +90,6 @@ const TopNavbar = () => {
         // Combine shop menu with static items
         setMenuData([...shopMenuItem, ...staticMenuItems]);
       } catch (error) {
-        console.error("Error fetching categories for navigation:", error);
         // Fallback: create simple Shop menu item
         const shopMenuItem: NavMenu = [{
           id: 1,

@@ -22,7 +22,6 @@ const ProductDetails = ({ productId }: ProductDetailsProps) => {
         const data = await getProductSpecifications(productId);
         setSpecs(data);
       } catch (error) {
-        console.error("Error fetching product specifications:", error);
       } finally {
         setLoading(false);
       }

@@ -24,7 +24,6 @@ export default function TabsPage() {
       const data = await getAllTabs();
       setTabs(data);
     } catch (error) {
-      console.error("Error fetching tabs:", error);
     } finally {
       setLoading(false);
     }

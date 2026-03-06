@@ -61,7 +61,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
         setResults(data.products || []);
         setShowResults(true);
       } catch (error) {
-        console.error("Search error:", error);
         setResults([]);
       } finally {
         setIsLoading(false);

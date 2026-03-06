@@ -184,13 +184,11 @@ export async function getProductSpecifications(
       .order('spec_key', { ascending: true })
 
     if (error) {
-      console.error('Error fetching product specifications:', error)
       return []
     }
 
     return (data || []) as ProductSpecification[]
   } catch (error) {
-    console.error('Error fetching product specifications:', error)
     return []
   }
 }
@@ -205,7 +203,6 @@ export async function getCategoriesForShop(): Promise<Array<{ id: string; name: 
       .order('name')
 
     if (error) {
-      console.error('Error fetching categories:', error)
       return []
     }
 
@@ -217,7 +214,6 @@ export async function getCategoriesForShop(): Promise<Array<{ id: string; name: 
       parent_slug: (cat.parent as any)?.slug || null,
     })) as Array<{ id: string; name: string; slug: string; parent_id: string | null; parent_slug?: string | null }>
   } catch (error) {
-    console.error('Error fetching categories:', error)
     return []
   }
 }
@@ -244,7 +240,6 @@ export async function getProductTabs(): Promise<ProductTab[]> {
       .order('display_name', { ascending: true })
 
     if (error) {
-      console.error('Error fetching product tabs:', error)
       // Return default tabs if table doesn't exist yet
       return [
         { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },
@@ -256,7 +251,6 @@ export async function getProductTabs(): Promise<ProductTab[]> {
 
     return (data || []) as ProductTab[]
   } catch (error) {
-    console.error('Error fetching product tabs:', error)
     // Return default tabs on error
     return [
       { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },
@@ -320,7 +314,6 @@ export async function getFilteredProducts(
       .range(options.offset || 0, (options.offset || 0) + (options.limit || 10) - 1)
 
     if (error) {
-      console.error('Error fetching filtered products:', error)
       return []
     }
 
@@ -381,7 +374,6 @@ export async function getFilteredProducts(
 
     return products
   } catch (error) {
-    console.error('Error fetching filtered products:', error)
     return []
   }
 }
@@ -709,7 +701,6 @@ export async function searchProducts(
 
     return paginatedProducts.map(transformProduct)
   } catch (error) {
-    console.error('Error in searchProducts:', error)
     return []
   }
 }

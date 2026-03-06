@@ -73,7 +73,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (insertError) {
-      console.error('Newsletter subscription error:', insertError);
       return NextResponse.json(
         { success: false, error: 'Failed to subscribe. Please try again.' },
         { status: 500 }
@@ -85,7 +84,6 @@ export async function POST(request: NextRequest) {
       message: 'Successfully subscribed to newsletter!',
     });
   } catch (error: any) {
-    console.error('Newsletter API error:', error);
     return NextResponse.json(
       { success: false, error: 'An unexpected error occurred' },
       { status: 500 }

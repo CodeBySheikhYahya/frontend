@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
     const products = await searchProducts(query.trim(), limit, 0);
     return NextResponse.json({ products });
   } catch (error) {
-    console.error('Search API error:', error);
     return NextResponse.json({ products: [] }, { status: 500 });
   }
 }

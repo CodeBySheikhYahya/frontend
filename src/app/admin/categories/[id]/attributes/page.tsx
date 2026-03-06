@@ -65,7 +65,6 @@ export default function CategoryAttributesPage() {
       setCategoryAttributes(attrsData);
       setAllAttributes(allAttrsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
       alert("Failed to load data");
     } finally {
       setLoading(false);

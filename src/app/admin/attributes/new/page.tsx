@@ -144,7 +144,6 @@ export default function AddAttributePage() {
           });
 
           if (!valueResult.success) {
-            console.error(`Failed to create value "${values[i].value}":`, valueResult.error);
             // Continue creating other values even if one fails
           }
         }

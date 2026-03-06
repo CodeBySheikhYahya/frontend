@@ -26,7 +26,6 @@ const SearchPage = () => {
           setIsLoading(false);
         })
         .catch(err => {
-          console.error('Search error:', err);
           setProducts([]);
           setIsLoading(false);
         });

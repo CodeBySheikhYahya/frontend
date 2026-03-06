@@ -32,13 +32,11 @@ export async function getAllAttributes(): Promise<ProductAttribute[]> {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Error fetching attributes:', error)
       return []
     }
 
     return (data || []) as ProductAttribute[]
   } catch (error) {
-    console.error('Error fetching attributes:', error)
     return []
   }
 }
@@ -53,13 +51,11 @@ export async function getAttributeById(id: string): Promise<ProductAttribute | n
       .single()
 
     if (error) {
-      console.error('Error fetching attribute:', error)
       return null
     }
 
     return data as ProductAttribute
   } catch (error) {
-    console.error('Error fetching attribute:', error)
     return null
   }
 }
@@ -77,13 +73,11 @@ export async function getAttributeValues(
       .order('value', { ascending: true })
 
     if (error) {
-      console.error('Error fetching attribute values:', error)
       return []
     }
 
     return (data || []) as AttributeValue[]
   } catch (error) {
-    console.error('Error fetching attribute values:', error)
     return []
   }
 }
@@ -125,13 +119,11 @@ export async function createAttribute(
       .single()
 
     if (error) {
-      console.error('Error creating attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductAttribute }
   } catch (error: any) {
-    console.error('Error creating attribute:', error)
     return { success: false, error: error.message || 'Failed to create attribute' }
   }
 }
@@ -177,13 +169,11 @@ export async function updateAttribute(
       .single()
 
     if (error) {
-      console.error('Error updating attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductAttribute }
   } catch (error: any) {
-    console.error('Error updating attribute:', error)
     return { success: false, error: error.message || 'Failed to update attribute' }
   }
 }
@@ -201,7 +191,6 @@ export async function deleteAttribute(
       .limit(1)
 
     if (categoryAttrsError) {
-      console.error('Error checking category attributes:', categoryAttrsError)
     }
 
     if (categoryAttrs && categoryAttrs.length > 0) {
@@ -238,13 +227,11 @@ export async function deleteAttribute(
     const { error } = await supabase.from('product_attributes').delete().eq('id', id)
 
     if (error) {
-      console.error('Error deleting attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error deleting attribute:', error)
     return { success: false, error: error.message || 'Failed to delete attribute' }
   }
 }
@@ -275,13 +262,11 @@ export async function createAttributeValue(
       .single()
 
     if (error) {
-      console.error('Error creating attribute value:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as AttributeValue }
   } catch (error: any) {
-    console.error('Error creating attribute value:', error)
     return { success: false, error: error.message || 'Failed to create attribute value' }
   }
 }
@@ -313,13 +298,11 @@ export async function updateAttributeValue(
       .single()
 
     if (error) {
-      console.error('Error updating attribute value:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as AttributeValue }
   } catch (error: any) {
-    console.error('Error updating attribute value:', error)
     return { success: false, error: error.message || 'Failed to update attribute value' }
   }
 }
@@ -349,13 +332,11 @@ export async function deleteAttributeValue(
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting attribute value:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error deleting attribute value:', error)
     return { success: false, error: error.message || 'Failed to delete attribute value' }
   }
 }

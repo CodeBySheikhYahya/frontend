@@ -110,15 +110,15 @@ const ShopFilters = ({ onFilterChange, initialCategoryId }: ShopFiltersProps) =>
       const attrs = await getCategoryAttributes(selectedCategory);
       setCategoryAttributes(attrs);
 
-      // Fetch values for each attribute
-      const valuesMap: Record<string, AttributeValue[]> = {};
-      for (const attr of attrs) {
-        const values = await getAttributeValues(attr.attribute_id);
-        valuesMap[attr.attribute_id] = values;
-      }
-      setAttributeValues(valuesMap);
+      const entries = await Promise.all(
+        attrs.map(async (attr) => {
+          const values = await getAttributeValues(attr.attribute_id);
+          return [attr.attribute_id, values] as const;
+        })
+      );
+      setAttributeValues(Object.fromEntries(entries));
     } catch (error) {
-      console.error("Error fetching category attributes:", error);
+      // silently handle - filters will show empty
     }
   };
 

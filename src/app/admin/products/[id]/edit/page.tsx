@@ -118,11 +118,9 @@ export default function EditProductPage() {
 
   // Fetch category attributes when category changes
   useEffect(() => {
-    console.log("Category ID changed:", categoryId);
     if (categoryId) {
       fetchCategoryAttributes();
     } else {
-      console.log("No category selected, clearing attributes");
       setCategoryAttributes([]);
       setAttributeValues({});
     }
@@ -132,22 +130,18 @@ export default function EditProductPage() {
     if (!categoryId) return;
     
     try {
-      console.log("Fetching category attributes for category:", categoryId);
       const attrs = await getCategoryAttributes(categoryId);
-      console.log("Fetched category attributes:", attrs);
       setCategoryAttributes(attrs);
       
-      // Fetch values for each attribute
-      const valuesMap: Record<string, AttributeValue[]> = {};
-      for (const attr of attrs) {
-        const values = await getAttributeValues(attr.attribute_id);
-        valuesMap[attr.attribute_id] = values;
-        console.log(`Attribute ${attr.attribute?.display_name} values:`, values);
-      }
-      setAttributeValues(valuesMap);
-      console.log("All attribute values:", valuesMap);
+      const entries = await Promise.all(
+        attrs.map(async (attr) => {
+          const values = await getAttributeValues(attr.attribute_id);
+          return [attr.attribute_id, values] as const;
+        })
+      );
+      setAttributeValues(Object.fromEntries(entries));
     } catch (error) {
-      console.error("Error fetching category attributes:", error);
+      // silently handle
     }
   };
 
@@ -192,7 +186,6 @@ export default function EditProductPage() {
       }
 
       if (product.variants) {
-        console.log("Loading variants from database:", product.variants);
         // Fetch variant attributes for each variant
         const variantsWithAttributes = await Promise.all(
           product.variants.map(async (v) => {
@@ -202,8 +195,6 @@ export default function EditProductPage() {
               .select('attribute_id, attribute_value_id')
               .eq('variant_id', v.id);
             
-            console.log(`Variant ${v.id} attributes from DB:`, variantAttrs);
-            
             // Build attributes object: attribute_id -> attribute_value_id
             const attributes: Record<string, string> = {};
             if (variantAttrs) {
@@ -211,8 +202,6 @@ export default function EditProductPage() {
                 attributes[va.attribute_id] = va.attribute_value_id;
               });
             }
-            
-            console.log(`Variant ${v.id} attributes object:`, attributes);
             
             return {
               id: v.id,
@@ -228,10 +217,7 @@ export default function EditProductPage() {
           })
         );
         
-        console.log("All variants with attributes:", variantsWithAttributes);
         setVariants(variantsWithAttributes);
-      } else {
-        console.log("No variants found for product");
       }
 
       // Load specifications
@@ -299,16 +285,12 @@ export default function EditProductPage() {
   };
 
   const addVariant = () => {
-    console.log("Adding new variant in edit page");
-    console.log("Current category attributes:", categoryAttributes);
-    // Initialize attributes object for dynamic attributes
     const initialAttributes: Record<string, string> = {};
     if (categoryAttributes.length > 0) {
       categoryAttributes.forEach((ca) => {
         initialAttributes[ca.attribute_id] = "";
       });
     }
-    console.log("Initial attributes for new variant:", initialAttributes);
     
     setVariants([
       ...variants,
@@ -322,7 +304,6 @@ export default function EditProductPage() {
         size_id: categoryAttributes.length === 0 ? "" : undefined,
       },
     ]);
-    console.log("Variant added, total variants:", variants.length + 1);
   };
 
   const handleCreateColor = async (index: number) => {
@@ -367,10 +348,8 @@ export default function EditProductPage() {
   };
 
   const updateVariant = (index: number, field: keyof VariantFormData, value: any) => {
-    console.log(`Updating variant ${index}, field: ${field}`, value);
     const updated = [...variants];
     updated[index] = { ...updated[index], [field]: value };
-    console.log("Updated variant:", updated[index]);
     setVariants(updated);
   };
 
@@ -452,37 +431,19 @@ export default function EditProductPage() {
       }
 
       // Save variants
-      console.log("=== VARIANT SAVE DEBUG (EDIT PAGE) ===");
-      console.log("Total variants to save:", variants.length);
-      console.log("Category attributes:", categoryAttributes);
-      console.log("Category ID:", categoryId);
-      
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i]
-        console.log(`\n--- Variant ${i + 1} ---`);
-        console.log("Variant data:", variant);
-        console.log("Variant attributes:", variant.attributes);
         
         // Use dynamic attributes if category has attributes assigned
         if (categoryAttributes.length > 0) {
-          console.log("Using dynamic attributes system");
-          // Check if all required attributes are filled
           const requiredAttrs = categoryAttributes.filter(ca => ca.is_required);
-          console.log("Required attributes:", requiredAttrs);
           
           const allRequiredFilled = requiredAttrs.every(ca => 
             variant.attributes[ca.attribute_id] && variant.attributes[ca.attribute_id] !== ""
           );
           
-          console.log("All required attributes filled?", allRequiredFilled);
-          
           if (allRequiredFilled) {
-            // Check if this is a new variant (no id) or existing variant
             if (variant.id) {
-              console.log("Updating existing variant:", variant.id);
-              // For existing variants, we need to update them
-              // First delete old attribute associations, then create new ones
-              // This is a simplified approach - you might want to optimize this
               const dynamicVariantData: DynamicVariantData = {
                 product_id: productId,
                 stock_quantity: variant.stock_quantity,
@@ -496,7 +457,6 @@ export default function EditProductPage() {
                   })),
               };
               
-              // Update variant basic info
               await upsertVariant(variant.id, {
                 product_id: productId,
                 color_id: undefined,
@@ -507,9 +467,7 @@ export default function EditProductPage() {
               });
               
               // TODO: Update attribute associations (delete old, insert new)
-              console.log("⚠️ Need to update attribute associations for existing variant");
             } else {
-              console.log("Creating new variant with dynamic attributes");
               const dynamicVariantData: DynamicVariantData = {
                 product_id: productId,
                 stock_quantity: variant.stock_quantity,
@@ -523,20 +481,10 @@ export default function EditProductPage() {
                   })),
               };
               
-              console.log("Creating variant with data:", dynamicVariantData);
-              const variantResult = await createVariantWithAttributes(dynamicVariantData);
-              console.log("Variant creation result:", variantResult);
+              await createVariantWithAttributes(dynamicVariantData);
             }
-          } else {
-            console.log("❌ Skipping variant - required attributes not filled");
-            const missingAttrs = requiredAttrs.filter(ca => 
-              !variant.attributes[ca.attribute_id] || variant.attributes[ca.attribute_id] === ""
-            );
-            console.log("Missing attributes:", missingAttrs);
           }
         } else {
-          console.log("Using legacy color_id/size_id system");
-          // Fallback to legacy color_id/size_id system - size is optional
           const variantData = {
             product_id: productId,
             color_id: variant.color_id || null,
@@ -546,12 +494,9 @@ export default function EditProductPage() {
             is_active: variant.is_active,
           }
           
-          console.log("Saving legacy variant:", variantData);
           await upsertVariant(variant.id || null, variantData);
         }
       }
-      
-      console.log("=== END VARIANT SAVE DEBUG ===\n");
 
       // Save specifications
       // First, get existing specs to know which to delete
@@ -996,7 +941,6 @@ export default function EditProductPage() {
                               className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0"
                               value={variant.attributes?.[catAttr.attribute_id] || ""}
                               onChange={(e) => {
-                                console.log(`Variant ${index} - ${attr.display_name} changed:`, e.target.value);
                                 const updated = { ...(variant.attributes || {}) };
                                 updated[catAttr.attribute_id] = e.target.value;
                                 updateVariant(index, "attributes", updated);
@@ -1018,7 +962,6 @@ export default function EditProductPage() {
                                 className="w-full px-3 py-2 text-sm bg-[#F0F0F0] rounded-lg border-0 mb-2"
                                 value={variant.attributes?.[catAttr.attribute_id] || ""}
                                 onChange={(e) => {
-                                  console.log(`Variant ${index} - ${attr.display_name} changed:`, e.target.value);
                                   const updated = { ...(variant.attributes || {}) };
                                   updated[catAttr.attribute_id] = e.target.value;
                                   updateVariant(index, "attributes", updated);
@@ -1059,7 +1002,6 @@ export default function EditProductPage() {
                                 placeholder={`Enter ${attr.display_name}`}
                                 value={variant.attributes?.[catAttr.attribute_id] || ""}
                                 onChange={(e) => {
-                                  console.log(`Variant ${index} - ${attr.display_name} changed:`, e.target.value);
                                   const updated = { ...(variant.attributes || {}) };
                                   updated[catAttr.attribute_id] = e.target.value;
                                   updateVariant(index, "attributes", updated);

@@ -29,7 +29,6 @@ export default function AdminCategoriesPage() {
       const data = await getAllCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Error fetching categories:", error);
     } finally {
       setLoading(false);
     }

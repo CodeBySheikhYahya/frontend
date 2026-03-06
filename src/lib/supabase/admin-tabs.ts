@@ -14,13 +14,11 @@ export async function getAllTabs(): Promise<ProductTab[]> {
       .order('display_name', { ascending: true })
 
     if (error) {
-      console.error('Error fetching tabs:', error)
       return []
     }
 
     return (data || []) as ProductTab[]
   } catch (error) {
-    console.error('Error fetching tabs:', error)
     return []
   }
 }
@@ -35,13 +33,11 @@ export async function getTabById(id: string): Promise<ProductTab | null> {
       .single()
 
     if (error) {
-      console.error('Error fetching tab:', error)
       return null
     }
 
     return data as ProductTab
   } catch (error) {
-    console.error('Error fetching tab:', error)
     return null
   }
 }
@@ -72,13 +68,11 @@ export async function createTab(
       .single()
 
     if (error) {
-      console.error('Error creating tab:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductTab }
   } catch (error: any) {
-    console.error('Error creating tab:', error)
     return { success: false, error: error.message || 'Failed to create tab' }
   }
 }
@@ -111,13 +105,11 @@ export async function updateTab(
       .single()
 
     if (error) {
-      console.error('Error updating tab:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductTab }
   } catch (error: any) {
-    console.error('Error updating tab:', error)
     return { success: false, error: error.message || 'Failed to update tab' }
   }
 }
@@ -139,13 +131,11 @@ export async function deleteTab(
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting tab:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error deleting tab:', error)
     return { success: false, error: error.message || 'Failed to delete tab' }
   }
 }

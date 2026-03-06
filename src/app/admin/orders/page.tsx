@@ -52,73 +52,46 @@ export default function AdminOrdersPage() {
   };
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-    console.log("=== ORDER STATUS CHANGE DEBUG ===");
-    console.log("Order ID:", orderId);
-    console.log("New Status:", newStatus);
-    console.log("Current Status Filter:", statusFilter);
-    
     if (!confirm(`Change order status to "${newStatus}"?`)) {
-      console.log("User cancelled the confirmation");
       return;
     }
 
-    console.log("User confirmed, updating status...");
     setUpdatingStatus(orderId);
     try {
-      console.log("Calling updateOrderStatus...");
       const result = await updateOrderStatus(orderId, newStatus);
-      console.log("Update result:", result);
       
       if (result.success) {
-        console.log("✅ Status updated successfully, refreshing orders...");
         // Refresh orders
         await fetchOrders();
-        console.log("Orders refreshed");
       } else {
-        console.error("❌ Update failed:", result.error);
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      console.error("❌ Exception caught:", error);
       alert("Failed to update order status");
     } finally {
       setUpdatingStatus(null);
-      console.log("=== END STATUS CHANGE DEBUG ===");
     }
   };
 
   const handlePaymentStatusChange = async (orderId: string, newPaymentStatus: PaymentStatus) => {
-    console.log("=== PAYMENT STATUS CHANGE DEBUG ===");
-    console.log("Order ID:", orderId);
-    console.log("New Payment Status:", newPaymentStatus);
-    
     if (!confirm(`Change payment status to "${newPaymentStatus}"?`)) {
-      console.log("User cancelled the confirmation");
       return;
     }
 
-    console.log("User confirmed, updating payment status...");
     setUpdatingPaymentStatus(orderId);
     try {
-      console.log("Calling updatePaymentStatus...");
       const result = await updatePaymentStatus(orderId, newPaymentStatus);
-      console.log("Update result:", result);
       
       if (result.success) {
-        console.log("✅ Payment status updated successfully, refreshing orders...");
         // Refresh orders
         await fetchOrders();
-        console.log("Orders refreshed");
       } else {
-        console.error("❌ Update failed:", result.error);
         alert(`Error: ${result.error}`);
       }
     } catch (error) {
-      console.error("❌ Exception caught:", error);
       alert("Failed to update payment status");
     } finally {
       setUpdatingPaymentStatus(null);
-      console.log("=== END PAYMENT STATUS CHANGE DEBUG ===");
     }
   };
 

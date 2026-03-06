@@ -48,7 +48,6 @@ export default function SizesColorsPage() {
       setColors(colorsData as ColorRow[]);
       setSizes(sizesData as SizeRow[]);
     } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }

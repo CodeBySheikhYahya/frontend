@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAppSelector } from "@/lib/hooks/redux";
 import { RootState } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import Image from "next/image";
 import { integralCF } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import { City } from "country-state-city";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -55,13 +54,25 @@ const CheckoutPage = () => {
     country: "Pakistan",
   });
 
-  // Get Pakistan cities
-  const pakistanCities = City.getCitiesOfCountry("PK") || [];
+  const [pakistanCities, setPakistanCities] = useState<Array<{ name: string }>>([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
-  const filteredCities = pakistanCities.filter((c) =>
-    (c.name || "").toLowerCase().includes(citySearch.toLowerCase())
-  ).slice(0, 50);
+
+  useEffect(() => {
+    import("country-state-city").then(({ City }) => {
+      setPakistanCities(
+        (City.getCitiesOfCountry("PK") || []).map((c) => ({ name: c.name || "" }))
+      );
+    });
+  }, []);
+
+  const filteredCities = useMemo(
+    () =>
+      pakistanCities
+        .filter((c) => c.name.toLowerCase().includes(citySearch.toLowerCase()))
+        .slice(0, 50),
+    [pakistanCities, citySearch]
+  );
 
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);

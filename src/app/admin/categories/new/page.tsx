@@ -46,7 +46,6 @@ export default function AddCategoryPage() {
       const categories = await getAllCategories();
       setAllCategories(categories);
     } catch (error) {
-      console.error("Error fetching categories:", error);
     }
   };
 

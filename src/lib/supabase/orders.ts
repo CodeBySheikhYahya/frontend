@@ -24,23 +24,16 @@ async function getProductIdByTitle(title: string): Promise<string | null> {
   return data.id
 }
 
-// Look up variant by product, color, and size
+// Look up variant by product, color, and size (parallel color+size lookup)
 async function getVariantId(
   productId: string,
   colorName: string,
   sizeName: string
 ): Promise<string | null> {
-  const { data: colorData } = await supabase
-    .from('colors')
-    .select('id')
-    .eq('name', colorName)
-    .single()
-
-  const { data: sizeData } = await supabase
-    .from('sizes')
-    .select('id')
-    .eq('name', sizeName)
-    .single()
+  const [{ data: colorData }, { data: sizeData }] = await Promise.all([
+    supabase.from('colors').select('id').eq('name', colorName).single(),
+    supabase.from('sizes').select('id').eq('name', sizeName).single(),
+  ])
 
   if (!colorData || !sizeData) {
     return null
@@ -54,11 +47,7 @@ async function getVariantId(
     .eq('size_id', sizeData.id)
     .single()
 
-  if (!variantData) {
-    return null
-  }
-
-  return variantData.id
+  return variantData?.id ?? null
 }
 
 export interface CreateOrderData {
@@ -145,36 +134,37 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       }
     }
 
-    // Create order items
+    // Resolve product IDs and variant IDs in parallel
+    const resolvedItems = await Promise.all(
+      data.cartItems.map(async (cartItem) => {
+        let productId: string | null = cartItem.productId || null
+        if (!productId) {
+          productId = await getProductIdByTitle(cartItem.name)
+        }
+
+        let variantId: string | null = null
+        if (productId) {
+          variantId = await getVariantId(
+            productId,
+            cartItem.attributes[1] || '',
+            cartItem.attributes[0] || ''
+          )
+        }
+
+        return { cartItem, productId, variantId }
+      })
+    )
+
     const orderItems = []
     const failedItems: string[] = []
-    
-    for (const cartItem of data.cartItems) {
-      // Use productId from cart if available, otherwise try to find by title
-      let productId: string | null = null
-      
-      if (cartItem.productId) {
-        // Use productId directly from cart (preferred method)
-        productId = cartItem.productId
-      } else {
-        // Fallback: Try to find product by title (for backward compatibility)
-        productId = await getProductIdByTitle(cartItem.name)
-      }
-      
+    const variantsToDestock: Array<{ variantId: string; quantity: number }> = []
+
+    for (const { cartItem, productId, variantId } of resolvedItems) {
       if (!productId) {
-        const errorMsg = `Product not found for: ${cartItem.name}`
         failedItems.push(cartItem.name)
         continue
       }
 
-      // Try to find variant
-      const variantId = await getVariantId(
-        productId,
-        cartItem.attributes[1] || '', // color
-        cartItem.attributes[0] || '' // size
-      )
-
-      // Calculate unit price and discount
       const unitPrice = cartItem.discount.percentage > 0
         ? cartItem.price - (cartItem.price * cartItem.discount.percentage) / 100
         : cartItem.discount.amount > 0
@@ -200,77 +190,50 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
         discount_amount: discountAmount * cartItem.quantity,
         total_price: totalPrice,
       })
+
+      if (variantId) {
+        variantsToDestock.push({ variantId, quantity: cartItem.quantity })
+      }
     }
 
-    // Safety check: Cancel order if no items were created
     if (orderItems.length === 0) {
-      // Delete the order since it has no items
-      await supabase
-        .from('orders')
-        .delete()
-        .eq('id', order.id)
-      
+      await supabase.from('orders').delete().eq('id', order.id)
       return {
         success: false,
         error: `Failed to create order items. Products not found: ${failedItems.join(', ')}`,
       }
     }
 
-    // Insert order items
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems)
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems)
 
-      if (itemsError) {
-      // Delete the order since items failed
-      await supabase
-        .from('orders')
-        .delete()
-        .eq('id', order.id)
-      
-        return {
-          success: false,
-          error: itemsError.message || 'Failed to create order items',
-        }
-      }
-
-    // Reduce stock for each variant
-    for (const cartItem of data.cartItems) {
-      if (cartItem.productId) {
-        const productId = cartItem.productId
-        const variantId = await getVariantId(
-          productId,
-          cartItem.attributes[1] || '', // color
-          cartItem.attributes[0] || '' // size
-        )
-
-        if (variantId) {
-          // Get current stock
-          const { data: variant } = await supabase
-            .from('product_variants')
-            .select('stock_quantity')
-            .eq('id', variantId)
-            .single()
-
-          if (variant) {
-            const currentStock = variant.stock_quantity || 0
-            const newStock = Math.max(0, currentStock - cartItem.quantity)
-            
-            // Update stock
-            const { error: stockError } = await supabase
-              .from('product_variants')
-              .update({ stock_quantity: newStock })
-              .eq('id', variantId)
-
-            if (stockError) {
-              console.error(`Failed to reduce stock for variant ${variantId}:`, stockError)
-            }
-          }
-        } else {
-          console.warn(`Variant not found for product ${productId}, color: ${cartItem.attributes[1]}, size: ${cartItem.attributes[0]}`)
-        }
+    if (itemsError) {
+      await supabase.from('orders').delete().eq('id', order.id)
+      return {
+        success: false,
+        error: itemsError.message || 'Failed to create order items',
       }
     }
+
+    // Reduce stock in parallel using cached variant IDs
+    await Promise.all(
+      variantsToDestock.map(async ({ variantId, quantity }) => {
+        const { data: variant } = await supabase
+          .from('product_variants')
+          .select('stock_quantity')
+          .eq('id', variantId)
+          .single()
+
+        if (variant) {
+          const newStock = Math.max(0, (variant.stock_quantity || 0) - quantity)
+          await supabase
+            .from('product_variants')
+            .update({ stock_quantity: newStock })
+            .eq('id', variantId)
+        }
+      })
+    )
     
     return {
       success: true,

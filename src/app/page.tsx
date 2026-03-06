@@ -1,18 +1,16 @@
+import dynamic from "next/dynamic";
 import ProductListSec from "@/components/common/ProductListSec";
 import Brands from "@/components/homepage/Brands";
-import DressStyle from "@/components/homepage/DressStyle";
 import Header from "@/components/homepage/Header";
-import Reviews from "@/components/homepage/Reviews";
 import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
-import { unstable_noStore } from "next/cache";
 
-// Make this page dynamic to avoid build-time Supabase calls
-export const dynamic = 'force-dynamic';
+const DressStyle = dynamic(() => import("@/components/homepage/DressStyle"));
+const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
+
+export const revalidate = 60;
 
 export default async function Home() {
-  unstable_noStore(); // Never cache: every request gets fresh data
-  // Fetch data from Supabase
   const [newArrivalsData, topSellingData, reviewsData] = await Promise.all([
     getNewArrivals(4),
     getTopSelling(4),

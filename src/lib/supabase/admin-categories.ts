@@ -24,13 +24,11 @@ export async function getAllCategories(): Promise<Category[]> {
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Error fetching categories:', error)
       return []
     }
 
     return (data || []) as Category[]
   } catch (error) {
-    console.error('Error fetching categories:', error)
     return []
   }
 }
@@ -45,13 +43,11 @@ export async function getCategoryById(id: string): Promise<Category | null> {
       .single()
 
     if (error) {
-      console.error('Error fetching category:', error)
       return null
     }
 
     return data as Category
   } catch (error) {
-    console.error('Error fetching category:', error)
     return null
   }
 }
@@ -107,13 +103,11 @@ export async function createCategory(
       .single()
 
     if (error) {
-      console.error('Error creating category:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as Category }
   } catch (error: any) {
-    console.error('Error creating category:', error)
     return { success: false, error: error.message || 'Failed to create category' }
   }
 }
@@ -169,13 +163,11 @@ export async function updateCategory(
       .single()
 
     if (error) {
-      console.error('Error updating category:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as Category }
   } catch (error: any) {
-    console.error('Error updating category:', error)
     return { success: false, error: error.message || 'Failed to update category' }
   }
 }
@@ -193,7 +185,6 @@ export async function deleteCategory(
       .limit(1)
 
     if (productsError) {
-      console.error('Error checking products:', productsError)
     }
 
     if (products && products.length > 0) {
@@ -211,7 +202,6 @@ export async function deleteCategory(
       .limit(1)
 
     if (subcategoriesError) {
-      console.error('Error checking subcategories:', subcategoriesError)
     }
 
     if (subcategories && subcategories.length > 0) {
@@ -224,13 +214,11 @@ export async function deleteCategory(
     const { error } = await supabase.from('categories').delete().eq('id', id)
 
     if (error) {
-      console.error('Error deleting category:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error deleting category:', error)
     return { success: false, error: error.message || 'Failed to delete category' }
   }
 }

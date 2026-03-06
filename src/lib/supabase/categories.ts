@@ -98,7 +98,6 @@ export async function getCategoryBySlugPath(slugPath: string[]): Promise<Categor
 
     return null
   } catch (error) {
-    console.error('Error fetching category by slug path:', error)
     return null
   }
 }
@@ -118,7 +117,6 @@ export async function getChildCategoryIds(parentCategoryId: string): Promise<str
 
     return (data || []).map(c => c.id)
   } catch (error) {
-    console.error('Error fetching child category IDs:', error)
     return []
   }
 }

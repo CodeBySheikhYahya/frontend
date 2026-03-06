@@ -31,7 +31,6 @@ const Tabs = ({ productId, description }: TabsProps) => {
           setActiveTab(visible[0]?.tab_key ?? tabsData[0].tab_key);
         }
       } catch (error) {
-        console.error("Error fetching tabs:", error);
         // Fallback to default tabs
         const defaultTabs: ProductTab[] = [
           { id: '0', tab_key: 'description', display_name: 'Description', component_type: 'description', display_order: 0, is_active: true, is_required: false },

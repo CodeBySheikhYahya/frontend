@@ -64,7 +64,6 @@ export default function EditCategoryPage() {
         router.push("/admin/categories");
       }
     } catch (error) {
-      console.error("Error fetching category:", error);
       alert("Failed to load category");
       router.push("/admin/categories");
     } finally {
@@ -77,7 +76,6 @@ export default function EditCategoryPage() {
       const categories = await getAllCategories();
       setAllCategories(categories);
     } catch (error) {
-      console.error("Error fetching categories:", error);
     }
   };
 

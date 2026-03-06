@@ -21,7 +21,6 @@ export async function getCategoriesForNavigation(): Promise<NavigationCategory[]
       .order('name', { ascending: true })
 
     if (error) {
-      console.error('Error fetching categories for navigation:', error)
       return []
     }
 
@@ -74,7 +73,6 @@ export async function getCategoriesForNavigation(): Promise<NavigationCategory[]
 
     return rootCategories
   } catch (error) {
-    console.error('Error fetching categories for navigation:', error)
     return []
   }
 }

@@ -31,13 +31,11 @@ export async function getCategoryAttributes(
       .order('created_at', { ascending: true })
 
     if (error) {
-      console.error('Error fetching category attributes:', error)
       return []
     }
 
     return (data || []) as CategoryAttribute[]
   } catch (error) {
-    console.error('Error fetching category attributes:', error)
     return []
   }
 }
@@ -79,13 +77,11 @@ export async function assignAttributeToCategory(
       .single()
 
     if (error) {
-      console.error('Error assigning attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as CategoryAttribute }
   } catch (error: any) {
-    console.error('Error assigning attribute:', error)
     return { success: false, error: error.message || 'Failed to assign attribute' }
   }
 }
@@ -101,13 +97,11 @@ export async function removeAttributeFromCategory(
       .eq('id', categoryAttributeId)
 
     if (error) {
-      console.error('Error removing attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error removing attribute:', error)
     return { success: false, error: error.message || 'Failed to remove attribute' }
   }
 }
@@ -136,13 +130,11 @@ export async function updateCategoryAttribute(
       .single()
 
     if (error) {
-      console.error('Error updating category attribute:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as CategoryAttribute }
   } catch (error: any) {
-    console.error('Error updating category attribute:', error)
     return { success: false, error: error.message || 'Failed to update category attribute' }
   }
 }

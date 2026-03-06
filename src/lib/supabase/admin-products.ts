@@ -42,8 +42,11 @@ export interface AdminProduct {
   }>
 }
 
-// Get all products for admin (including inactive)
-export async function getAllAdminProducts(): Promise<AdminProduct[]> {
+// Get all products for admin (including inactive, with pagination)
+export async function getAllAdminProducts(
+  limit: number = 50,
+  offset: number = 0
+): Promise<AdminProduct[]> {
   try {
     const { data, error } = await supabase
       .from('products')
@@ -61,6 +64,7 @@ export async function getAllAdminProducts(): Promise<AdminProduct[]> {
         )
       `)
       .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (error) {
       return []
@@ -713,12 +717,6 @@ export async function createVariantWithAttributes(
   data: DynamicVariantData
 ): Promise<{ success: boolean; variantId?: string; error?: string }> {
   try {
-    console.log("=== createVariantWithAttributes CALLED ===");
-    console.log("Input data:", data);
-    console.log("Attributes to assign:", data.attributes);
-    
-    // First create the variant (without color_id/size_id for now)
-    console.log("Creating variant in database...");
     const { data: variant, error: variantError } = await supabase
       .from('product_variants')
       .insert({
@@ -726,50 +724,35 @@ export async function createVariantWithAttributes(
         stock_quantity: data.stock_quantity,
         price_override: data.price_override || null,
         is_active: data.is_active ?? true,
-        color_id: null, // Will use dynamic attributes instead
-        size_id: null, // Will use dynamic attributes instead
+        color_id: null,
+        size_id: null,
       })
       .select('id')
       .single()
 
     if (variantError || !variant) {
-      console.error("❌ Failed to create variant:", variantError);
       return { success: false, error: variantError?.message || 'Failed to create variant' }
     }
 
-    console.log("✅ Variant created successfully:", variant.id);
-
-    // Then create attribute associations
     if (data.attributes.length > 0) {
-      console.log("Creating attribute associations...");
       const variantAttributes = data.attributes.map(attr => ({
         variant_id: variant.id,
         attribute_id: attr.attribute_id,
         attribute_value_id: attr.attribute_value_id,
       }))
 
-      console.log("Variant attributes to insert:", variantAttributes);
-
       const { error: attrError } = await supabase
         .from('product_variant_attributes')
         .insert(variantAttributes)
 
       if (attrError) {
-        console.error("❌ Failed to create attribute associations:", attrError);
-        // Rollback variant creation
         await supabase.from('product_variants').delete().eq('id', variant.id)
         return { success: false, error: attrError.message }
       }
-      
-      console.log("✅ Attribute associations created successfully");
-    } else {
-      console.log("⚠️ No attributes to assign");
     }
 
-    console.log("=== createVariantWithAttributes SUCCESS ===\n");
     return { success: true, variantId: variant.id }
   } catch (error: any) {
-    console.error("❌ Exception in createVariantWithAttributes:", error);
     return { success: false, error: error.message || 'Failed to create variant' }
   }
 }
@@ -881,13 +864,11 @@ export async function getProductSpecifications(
       .order('spec_key', { ascending: true })
 
     if (error) {
-      console.error('Error fetching product specifications:', error)
       return []
     }
 
     return (data || []) as ProductSpecification[]
   } catch (error) {
-    console.error('Error fetching product specifications:', error)
     return []
   }
 }
@@ -914,13 +895,11 @@ export async function createProductSpecification(
       .single()
 
     if (error) {
-      console.error('Error creating product specification:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductSpecification }
   } catch (error: any) {
-    console.error('Error creating product specification:', error)
     return { success: false, error: error.message || 'Failed to create specification' }
   }
 }
@@ -948,13 +927,11 @@ export async function updateProductSpecification(
       .single()
 
     if (error) {
-      console.error('Error updating product specification:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data as ProductSpecification }
   } catch (error: any) {
-    console.error('Error updating product specification:', error)
     return { success: false, error: error.message || 'Failed to update specification' }
   }
 }
@@ -970,13 +947,11 @@ export async function deleteProductSpecification(
       .eq('id', specId)
 
     if (error) {
-      console.error('Error deleting product specification:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('Error deleting product specification:', error)
     return { success: false, error: error.message || 'Failed to delete specification' }
   }
 }

@@ -49,7 +49,6 @@ export default function EditAttributePage() {
         router.push("/admin/attributes");
       }
     } catch (error) {
-      console.error("Error fetching attribute:", error);
       alert("Failed to load property");
       router.push("/admin/attributes");
     } finally {

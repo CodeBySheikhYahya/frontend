@@ -29,7 +29,6 @@ export default function AdminNewsletterPage() {
       const data = await getAllNewsletterSubscribers();
       setSubscribers(data);
     } catch (error) {
-      console.error("Error fetching subscribers:", error);
     } finally {
       setLoading(false);
     }

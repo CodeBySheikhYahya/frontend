@@ -11,23 +11,25 @@ export interface NewsletterSubscriber {
 }
 
 /**
- * Get all newsletter subscribers
+ * Get all newsletter subscribers (with pagination)
  */
-export async function getAllNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+export async function getAllNewsletterSubscribers(
+  limit: number = 50,
+  offset: number = 0
+): Promise<NewsletterSubscriber[]> {
   try {
     const { data, error } = await supabase
       .from('newsletter_subscribers')
       .select('*')
       .order('subscribed_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error('Error fetching newsletter subscribers:', error)
       return []
     }
 
     return (data || []) as NewsletterSubscriber[]
   } catch (error) {
-    console.error('Error fetching newsletter subscribers:', error)
     return []
   }
 }
