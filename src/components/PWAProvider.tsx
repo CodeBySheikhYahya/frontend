@@ -88,7 +88,7 @@ export default function PWAProvider() {
       }}
     >
       <span style={{ fontSize: "14px", fontWeight: 500 }}>
-        Install SHOP.CO for a faster experience
+        Install Hulmattire by STM for a faster experience
       </span>
       <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
         <button
