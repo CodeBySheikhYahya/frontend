@@ -12,6 +12,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { integralCF } from "@/styles/fonts";
 import { NavMenu } from "../navbar.types";
+import BrandLogo from "@/components/layout/BrandLogo";
 import {
   Accordion,
   AccordionContent,
@@ -36,8 +37,8 @@ const ResTopNavbar = ({ data }: { data: NavMenu }) => {
         <SheetHeader className="mb-10">
           <SheetTitle asChild>
             <SheetClose asChild>
-              <Link href="/" className={cn([integralCF.className, "text-2xl"])}>
-                Hulmattire by STM
+              <Link href="/">
+                <BrandLogo size="sm" />
               </Link>
             </SheetClose>
           </SheetTitle>

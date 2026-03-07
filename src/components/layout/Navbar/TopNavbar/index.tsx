@@ -17,6 +17,7 @@ import ResTopNavbar from "./ResTopNavbar";
 import CartBtn from "./CartBtn";
 import SearchBar from "./SearchBar";
 import { getCategoriesForNavigation } from "@/lib/supabase/navigation";
+import BrandLogo from "@/components/layout/BrandLogo";
 
 const staticMenuItems: NavMenu = [
   {
@@ -111,14 +112,8 @@ const TopNavbar = () => {
           <div className="block md:hidden mr-4">
             <ResTopNavbar data={menuData} />
           </div>
-          <Link
-            href="/"
-            className={cn([
-              integralCF.className,
-              "text-2xl lg:text-[32px] mb-2 mr-3 lg:mr-10",
-            ])}
-          >
-            Hulmattire by STM
+          <Link href="/" className="mr-3 lg:mr-10">
+            <BrandLogo size="md" />
           </Link>
         </div>
         <NavigationMenu className="hidden md:flex mr-2 lg:mr-7">

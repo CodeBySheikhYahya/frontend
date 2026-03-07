@@ -1,4 +1,5 @@
 import localFont from "next/font/local";
+import { Great_Vibes } from "next/font/google";
 
 const integralCF = localFont({
   src: [
@@ -34,4 +35,10 @@ const satoshi = localFont({
   variable: "--font-satoshi",
 });
 
-export { integralCF, satoshi };
+const brandScript = Great_Vibes({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-brand-script",
+});
+
+export { integralCF, satoshi, brandScript };
