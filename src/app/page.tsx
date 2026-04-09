@@ -5,7 +5,7 @@ import { getFeaturedReviews } from "@/lib/supabase/reviews";
 
 const Header = dynamic(() => import("@/components/homepage/Header"), { ssr: false });
 const TrendingCategories = dynamic(() => import("@/components/homepage/TrendingCategories"));
-const DressStyle = dynamic(() => import("@/components/homepage/DressStyle"));
+const VideoBanner = dynamic(() => import("@/components/homepage/VideoBanner"), { ssr: false });
 const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 
 export const revalidate = 60;
@@ -46,7 +46,7 @@ export default async function Home() {
           <TrendingCategories />
         </div>
         <div className="mb-[50px] sm:mb-20">
-          <DressStyle />
+          <VideoBanner />
         </div>
         <Reviews data={reviewsData} />
       </main>
