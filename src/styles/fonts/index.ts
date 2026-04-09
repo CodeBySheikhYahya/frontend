@@ -1,5 +1,5 @@
 import localFont from "next/font/local";
-import { Great_Vibes } from "next/font/google";
+import { Great_Vibes, Playfair_Display } from "next/font/google";
 
 const integralCF = localFont({
   src: [
@@ -41,4 +41,10 @@ const brandScript = Great_Vibes({
   variable: "--font-brand-script",
 });
 
-export { integralCF, satoshi, brandScript };
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-playfairDisplay",
+});
+
+export { integralCF, satoshi, brandScript, playfairDisplay };

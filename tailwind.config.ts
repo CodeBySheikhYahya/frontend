@@ -12,6 +12,7 @@ const config: Config = {
       fontFamily: {
         integralCF: ["var(--font-integralCF)"],
         satoshi: ["var(--font-satoshi)"],
+        playfairDisplay: ["var(--font-playfairDisplay)", "serif"],
       },
       screens: {
         xs: "375px",

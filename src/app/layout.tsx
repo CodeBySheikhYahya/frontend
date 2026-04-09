@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import dynamic from "next/dynamic";
 import "@/styles/globals.css";
-import { satoshi } from "@/styles/fonts";
+import { satoshi, playfairDisplay } from "@/styles/fonts";
 import TopBanner from "@/components/layout/Banner/TopBanner";
 import TopNavbar from "@/components/layout/Navbar/TopNavbar";
 import Footer from "@/components/layout/Footer";
@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={satoshi.className}>
+      <body className={`${satoshi.className} ${playfairDisplay.variable}`}>
         <HolyLoader color="#868686" />
         <TopBanner />
         <Providers>

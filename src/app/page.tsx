@@ -4,6 +4,7 @@ import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
 
 const Header = dynamic(() => import("@/components/homepage/Header"), { ssr: false });
+const TrendingCategories = dynamic(() => import("@/components/homepage/TrendingCategories"));
 const DressStyle = dynamic(() => import("@/components/homepage/DressStyle"));
 const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 
@@ -40,6 +41,9 @@ export default async function Home() {
             data={topSellingData}
             viewAllLink="/shop?filter=top-selling"
           />
+        </div>
+        <div className="mb-[50px] sm:mb-20">
+          <TrendingCategories />
         </div>
         <div className="mb-[50px] sm:mb-20">
           <DressStyle />
