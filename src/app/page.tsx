@@ -1,10 +1,9 @@
 import dynamic from "next/dynamic";
 import ProductListSec from "@/components/common/ProductListSec";
-import Brands from "@/components/homepage/Brands";
-import Header from "@/components/homepage/Header";
 import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
 
+const Header = dynamic(() => import("@/components/homepage/Header"), { ssr: false });
 const DressStyle = dynamic(() => import("@/components/homepage/DressStyle"));
 const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 
@@ -19,8 +18,13 @@ export default async function Home() {
 
   return (
     <div>
+      <div className="flex justify-center items-center py-[24px] md:py-[14px] px-[16px]">
+        <button className="inline-flex items-center justify-center bg-black hover:bg-black/80 transition-all text-white px-[72px] py-[16px] md:py-[12px] rounded-[50px] text-[16px] font-medium">
+          Shop Now
+        </button>
+      </div>
       <Header />
-      <Brands />
+
       <main className="my-[50px] sm:my-[72px]">
         <ProductListSec
           title="NEW ARRIVALS"
