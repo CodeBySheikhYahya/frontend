@@ -1,4 +1,5 @@
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import ProductListSec from "@/components/common/ProductListSec";
 import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
@@ -20,9 +21,10 @@ export default async function Home() {
   return (
     <div>
       <div className="flex justify-center items-center py-[24px] md:py-[14px] px-[16px]">
-        <button className="inline-flex items-center justify-center bg-black hover:bg-black/80 transition-all text-white px-[72px] py-[16px] md:py-[12px] rounded-[50px] text-[16px] font-medium">
-          Shop Now
-        </button>
+        <Link href="/shop" className="group relative inline-flex items-center justify-center bg-transparent border border-black/80 text-black px-[72px] py-[14px] md:py-[11px] rounded-[5px] text-[15px] tracking-[0.12em] uppercase font-medium overflow-hidden transition-colors duration-500 ease-out hover:text-white hover:border-black">
+          <span className="absolute inset-0 bg-black origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.77,0,0.175,1)]" />
+          <span className="relative z-10">Shop Now</span>
+        </Link>
       </div>
       <Header />
 
