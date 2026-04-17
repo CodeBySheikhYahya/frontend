@@ -3,14 +3,39 @@
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 
-const POSTER_IMAGE =
+const FALLBACK_POSTER =
   "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1600&h=900&fit=crop&q=80";
+const FALLBACK_VIDEO = "/videos/journey.mp4";
 
-const VIDEO_SRC = "/videos/journey.mp4";
+export interface BtsVideoData {
+  videoUrl: string;
+  posterUrl: string | null;
+  title: string;
+  subtitle: string;
+}
 
-const VideoBanner = () => {
+interface VideoBannerProps {
+  videos?: BtsVideoData[];
+}
+
+const VideoBanner = ({ videos }: VideoBannerProps) => {
+  const activeVideo =
+    videos && videos.length > 0
+      ? videos[0]
+      : {
+          videoUrl: FALLBACK_VIDEO,
+          posterUrl: FALLBACK_POSTER,
+          title: "Our Journey",
+          subtitle:
+            "From thread to fabric, every piece tells a story of craftsmanship and heritage.",
+        };
+
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentIdx, setCurrentIdx] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const allVideos = videos && videos.length > 0 ? videos : [activeVideo];
+  const current = allVideos[currentIdx] || allVideos[0];
 
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
@@ -24,45 +49,59 @@ const VideoBanner = () => {
     }
   }, []);
 
+  const handleVideoEnded = useCallback(() => {
+    if (allVideos.length > 1) {
+      const nextIdx = (currentIdx + 1) % allVideos.length;
+      setCurrentIdx(nextIdx);
+      if (videoRef.current) {
+        videoRef.current.src = allVideos[nextIdx].videoUrl;
+        videoRef.current.play();
+      }
+    }
+  }, [currentIdx, allVideos]);
+
+  const posterSrc = current.posterUrl || FALLBACK_POSTER;
+
   return (
     <section className="relative w-full h-[480px] md:h-[560px] overflow-hidden">
-      {/* Background poster image */}
-      <Image
-        src={POSTER_IMAGE}
-        alt="Behind the scenes at our atelier"
-        fill
-        className="object-cover"
-        sizes="100vw"
-      />
+      {posterSrc.startsWith("http") ? (
+        <Image
+          src={posterSrc}
+          alt={current.title || "Behind the scenes"}
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
+      ) : (
+        <Image
+          src={posterSrc}
+          alt={current.title || "Behind the scenes"}
+          fill
+          className="object-cover"
+          sizes="100vw"
+        />
+      )}
 
-      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Content — pixel-perfect from Pencil */}
       <div className="absolute inset-0 flex flex-col justify-center items-center gap-5 md:gap-6 px-6 md:px-20 py-12 md:py-[60px]">
-        {/* Eyebrow: mobile 10px/tracking-[3px], desktop 12px/tracking-[4px] */}
         <p className="text-[10px] md:text-[12px] font-medium tracking-[3px] md:tracking-[4px] text-white/[0.67] text-center uppercase">
           Behind The Scenes
         </p>
 
-        {/* Title: mobile 40px, desktop 64px, Playfair Display italic */}
         <h2 className="font-playfairDisplay text-[40px] md:text-[64px] italic font-normal text-white text-center leading-tight">
-          Our Journey
+          {current.title}
         </h2>
 
-        {/* Subtitle: mobile 14px/max-w-[300px], desktop 16px/max-w-[540px] */}
         <p className="text-[14px] md:text-[16px] font-normal text-white/[0.73] text-center max-w-[300px] md:max-w-[540px]">
-          From thread to fabric, every piece tells a story of craftsmanship and
-          heritage.
+          {current.subtitle}
         </p>
 
-        {/* Play button: mobile 64px/border-2, desktop 80px/border-[3px] */}
         <button
           onClick={handlePlay}
           className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/[0.93] flex items-center justify-center border-2 md:border-[3px] border-white/[0.27] hover:scale-110 transition-transform duration-300 cursor-pointer"
           aria-label="Play video"
         >
-          {/* Play triangle: mobile 18x22, desktop 22x26 */}
           <svg
             viewBox="0 0 22 26"
             fill="none"
@@ -72,20 +111,35 @@ const VideoBanner = () => {
           </svg>
         </button>
 
-        {/* Bottom row: mobile gap-4/11px, desktop gap-6/13px */}
         <div className="flex items-center gap-4 md:gap-6">
           <span className="text-[11px] md:text-[13px] font-medium tracking-[2px] text-white/[0.53]">
             Watch the Film
           </span>
-          {/* Divider: mobile h-3, desktop h-3.5 */}
           <div className="w-px h-3 md:h-3.5 bg-white/20" />
           <span className="text-[11px] md:text-[13px] font-medium tracking-[2px] text-white/[0.53]">
-            2:34 MIN
+            {allVideos.length > 1
+              ? `${currentIdx + 1} / ${allVideos.length}`
+              : "BTS"}
           </span>
         </div>
+
+        {allVideos.length > 1 && (
+          <div className="flex items-center gap-2">
+            {allVideos.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentIdx(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  currentIdx === i
+                    ? "w-6 h-1.5 bg-white"
+                    : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Fullscreen video overlay */}
       {isPlaying && (
         <div className="absolute inset-0 bg-black z-10 flex items-center justify-center">
           <video
@@ -93,7 +147,8 @@ const VideoBanner = () => {
             className="w-full h-full object-cover"
             controls
             autoPlay
-            src={VIDEO_SRC}
+            src={current.videoUrl}
+            onEnded={handleVideoEnded}
           />
           <button
             onClick={handleClose}

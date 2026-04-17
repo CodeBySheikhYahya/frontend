@@ -16,6 +16,8 @@ import {
   Tag,
   Mail,
   Palette,
+  ImageIcon,
+  Clapperboard,
   // Layout, // Commented out - Product Tabs feature disabled
 } from "lucide-react";
 import { isAdmin } from "@/lib/supabase/admin";
@@ -26,6 +28,16 @@ const adminNavItems = [
     label: "Dashboard",
     href: "/admin",
     icon: LayoutDashboard,
+  },
+  {
+    label: "Banners",
+    href: "/admin/banners",
+    icon: ImageIcon,
+  },
+  {
+    label: "BTS Videos",
+    href: "/admin/bts",
+    icon: Clapperboard,
   },
   {
     label: "Categories",

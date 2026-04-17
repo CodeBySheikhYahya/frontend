@@ -3,6 +3,10 @@ import Link from "next/link";
 import ProductListSec from "@/components/common/ProductListSec";
 import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
+import { getActiveBanners } from "@/lib/supabase/admin-banners";
+import { getActiveBtsVideos } from "@/lib/supabase/admin-bts";
+import type { BannerSlide } from "@/components/homepage/Header";
+import type { BtsVideoData } from "@/components/homepage/VideoBanner";
 
 const Header = dynamic(() => import("@/components/homepage/Header"), { ssr: false });
 const TrendingCategories = dynamic(() => import("@/components/homepage/TrendingCategories"));
@@ -12,11 +16,26 @@ const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 export const revalidate = 60;
 
 export default async function Home() {
-  const [newArrivalsData, topSellingData, reviewsData] = await Promise.all([
+  const [newArrivalsData, topSellingData, reviewsData, bannersData, btsData] = await Promise.all([
     getNewArrivals(4),
     getTopSelling(4),
     getFeaturedReviews(3),
+    getActiveBanners(),
+    getActiveBtsVideos(),
   ]);
+
+  const bannerSlides: BannerSlide[] = bannersData.map((b) => ({
+    type: b.type,
+    src: b.media_url,
+    alt: b.alt_text || "",
+  }));
+
+  const btsVideos: BtsVideoData[] = btsData.map((v) => ({
+    videoUrl: v.video_url,
+    posterUrl: v.poster_url,
+    title: v.title || "Our Journey",
+    subtitle: v.subtitle || "From thread to fabric, every piece tells a story of craftsmanship and heritage.",
+  }));
 
   return (
     <div>
@@ -26,7 +45,7 @@ export default async function Home() {
           <span className="relative z-10">Shop Now</span>
         </Link>
       </div>
-      <Header />
+      <Header banners={bannerSlides.length > 0 ? bannerSlides : undefined} />
 
       <main className="my-[50px] sm:my-[72px]">
         <ProductListSec
@@ -48,7 +67,7 @@ export default async function Home() {
           <TrendingCategories />
         </div>
         <div className="mb-[50px] sm:mb-20">
-          <VideoBanner />
+          <VideoBanner videos={btsVideos.length > 0 ? btsVideos : undefined} />
         </div>
         <Reviews data={reviewsData} />
       </main>
