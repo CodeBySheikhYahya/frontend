@@ -203,8 +203,16 @@ const CheckoutPage = () => {
     try {
       await new Promise((r) => setTimeout(r, 400));
 
+      const items = cart?.items;
+      if (!items?.length) {
+        setSubmitError(
+          "Your cart is empty. Add items to your cart and try again, or refresh the page."
+        );
+        return;
+      }
+
       const orderRef = generateClientOrderRef();
-      const lines: PlacedLineItem[] = cart.items.map((item, idx) => ({
+      const lines: PlacedLineItem[] = items.map((item, idx) => ({
         key: `${String(item.id)}-${idx}-${item.attributes.join("-")}`,
         displayId:
           item.productId != null && String(item.productId).trim() !== ""
@@ -588,7 +596,7 @@ const CheckoutPage = () => {
               
               {/* Cart Items */}
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto">
-                {cart.items.map((item) => (
+                {(cart?.items ?? []).map((item) => (
                   <div key={`${item.id}-${item.attributes.join("-")}`} className="flex gap-3">
                     <div className="bg-[#F0EEED] rounded-lg w-20 h-20 flex-shrink-0 overflow-hidden">
                       <Image
