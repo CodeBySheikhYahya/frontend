@@ -7,6 +7,7 @@ import InputGroup from "@/components/ui/input-group";
 import Link from "next/link";
 import { Product } from "@/types/product.types";
 import { cn } from "@/lib/utils";
+import { formatUSD } from "@/lib/format-currency";
 
 interface SearchBarProps {
   className?: string;
@@ -177,11 +178,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ className }) => {
                         {product.title}
                       </p>
                       <p className="text-xs text-black/60">
-                        ${product.discount.percentage > 0
-                          ? Math.round(product.price - (product.price * product.discount.percentage) / 100)
-                          : product.discount.amount > 0
-                          ? Math.round(product.price - product.discount.amount)
-                          : product.price}
+                        {formatUSD(
+                          product.discount.percentage > 0
+                            ? Math.round(
+                                product.price -
+                                  (product.price * product.discount.percentage) / 100
+                              )
+                            : product.discount.amount > 0
+                              ? Math.round(product.price - product.discount.amount)
+                              : product.price
+                        )}
                       </p>
                     </div>
                   </div>

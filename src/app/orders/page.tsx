@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import InputGroup from "@/components/ui/input-group";
 import { integralCF } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
+import { formatUSD } from "@/lib/format-currency";
 import { getOrderByNumber } from "@/lib/supabase/orders";
 import Image from "next/image";
 
@@ -154,7 +155,7 @@ const OrdersPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-black/60">Total Amount:</span>
-                  <span className="font-bold">${order.total_amount.toFixed(2)}</span>
+                  <span className="font-bold">{formatUSD(order.total_amount)}</span>
                 </div>
               </div>
 

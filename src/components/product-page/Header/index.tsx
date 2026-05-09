@@ -8,6 +8,7 @@ import ColorSelection from "./ColorSelection";
 import SizeSelection from "./SizeSelection";
 import SizeChartButton from "./SizeChartButton";
 import AddToCardSection from "./AddToCardSection";
+import { formatUSD } from "@/lib/format-currency";
 
 const Header = ({ data }: { data: Product }) => {
   return (
@@ -42,27 +43,29 @@ const Header = ({ data }: { data: Product }) => {
           <div className="flex items-center space-x-2.5 sm:space-x-3 mb-5">
             {data.discount.percentage > 0 ? (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                {`$${Math.round(
-                  data.price - (data.price * data.discount.percentage) / 100
-                )}`}
+                {formatUSD(
+                  Math.round(
+                    data.price - (data.price * data.discount.percentage) / 100
+                  )
+                )}
               </span>
             ) : data.discount.amount > 0 ? (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                {`$${data.price - data.discount.amount}`}
+                {formatUSD(data.price - data.discount.amount)}
               </span>
             ) : (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                ${data.price}
+                {formatUSD(data.price)}
               </span>
             )}
             {data.discount.percentage > 0 && (
               <span className="font-bold text-black/40 line-through text-2xl sm:text-[32px]">
-                ${data.price}
+                {formatUSD(data.price)}
               </span>
             )}
             {data.discount.amount > 0 && (
               <span className="font-bold text-black/40 line-through text-2xl sm:text-[32px]">
-                ${data.price}
+                {formatUSD(data.price)}
               </span>
             )}
             {data.discount.percentage > 0 ? (
@@ -72,7 +75,7 @@ const Header = ({ data }: { data: Product }) => {
             ) : (
               data.discount.amount > 0 && (
                 <span className="font-medium text-[10px] sm:text-xs py-1.5 px-3.5 rounded-full bg-[#FF3333]/10 text-[#FF3333]">
-                  {`-$${data.discount.amount}`}
+                  {formatUSD(-data.discount.amount)}
                 </span>
               )
             )}

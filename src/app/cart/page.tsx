@@ -11,6 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { integralCF } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
+import { formatUSD } from "@/lib/format-currency";
 
 const CartPage = () => {
   const { cart, adjustedTotalPrice, totalPrice } = useAppSelector(
@@ -66,12 +67,12 @@ const CartPage = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-lg">
                   <span className="text-black/60">Subtotal</span>
-                  <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                  <span className="font-medium">{formatUSD(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-lg">
                   <span className="text-black/60">Discount</span>
                   <span className="font-medium text-[#FF3333]">
-                    -${(totalPrice - adjustedTotalPrice).toFixed(2)}
+                    {formatUSD(-(totalPrice - adjustedTotalPrice))}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg">
@@ -81,7 +82,7 @@ const CartPage = () => {
                 <hr className="h-[1px] border-t-black/10" />
                 <div className="flex justify-between text-2xl font-bold">
                   <span>Total</span>
-                  <span>${adjustedTotalPrice.toFixed(2)}</span>
+                  <span>{formatUSD(adjustedTotalPrice)}</span>
                 </div>
               </div>
               

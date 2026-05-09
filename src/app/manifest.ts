@@ -2,10 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hulmattire by STM - Your Style, Delivered",
-    short_name: "Hulmattire by STM",
-    description:
-      "Discover and shop the latest fashion trends at Hulmattire by STM",
+    name: "SRX Retail — Your Style, Delivered",
+    short_name: "SRX Retail",
+    description: "Discover and shop at SRX — your retailer storefront",
     start_url: "/",
     display: "standalone",
     orientation: "portrait",

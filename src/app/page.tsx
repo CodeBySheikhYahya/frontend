@@ -1,12 +1,23 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import ProductListSec from "@/components/common/ProductListSec";
-import { getNewArrivals, getTopSelling } from "@/lib/supabase/products";
+import {
+  getNewArrivals,
+  getOnSaleProducts,
+  getTopSelling,
+} from "@/lib/supabase/products";
+import {
+  padOnSaleWithUsaDemoProducts,
+  padWithUsaDemoProducts,
+  padWithUsaDemoProductsExcluding,
+} from "@/lib/homepage-pad-demo-products";
+import { usaDemoProductPath } from "@/lib/usa-demo-catalog";
+import type { Product } from "@/types/product.types";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
-import { getActiveBanners } from "@/lib/supabase/admin-banners";
 import { getActiveBtsVideos } from "@/lib/supabase/admin-bts";
 import type { BannerSlide } from "@/components/homepage/Header";
 import type { BtsVideoData } from "@/components/homepage/VideoBanner";
+import { US_BRAND_HERO_SLIDES } from "@/data/us-brand-hero-slides";
 
 const Header = dynamic(() => import("@/components/homepage/Header"), { ssr: false });
 const TrendingCategories = dynamic(() => import("@/components/homepage/TrendingCategories"));
@@ -15,20 +26,44 @@ const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 
 export const revalidate = 60;
 
-export default async function Home() {
-  const [newArrivalsData, topSellingData, reviewsData, bannersData, btsData] = await Promise.all([
-    getNewArrivals(4),
-    getTopSelling(4),
-    getFeaturedReviews(3),
-    getActiveBanners(),
-    getActiveBtsVideos(),
-  ]);
+function resolveHomeProductHref(product: Product) {
+  if (String(product.id).startsWith("usa-")) {
+    return usaDemoProductPath(product);
+  }
+  return undefined;
+}
 
-  const bannerSlides: BannerSlide[] = bannersData.map((b) => ({
-    type: b.type,
-    src: b.media_url,
-    alt: b.alt_text || "",
-  }));
+export default async function Home() {
+  const [newArrivalsRaw, onSaleRaw, topSellingRaw, reviewsData, btsData] =
+    await Promise.all([
+      getNewArrivals(4),
+      getOnSaleProducts(4),
+      getTopSelling(4),
+      getFeaturedReviews(3),
+      getActiveBtsVideos(),
+    ]);
+
+  const newArrivalsData = padWithUsaDemoProducts(newArrivalsRaw, 4);
+  const newArrivalIds = new Set(newArrivalsData.map((p) => String(p.id)));
+  const onSaleWithoutOverlap = onSaleRaw.filter((p) => !newArrivalIds.has(String(p.id)));
+  const onSaleData = padOnSaleWithUsaDemoProducts(
+    onSaleWithoutOverlap,
+    4,
+    newArrivalsData
+  );
+
+  const excludeFromTopSelling = [...newArrivalsData, ...onSaleData];
+  const topSellingIds = new Set(excludeFromTopSelling.map((p) => String(p.id)));
+  const topSellingWithoutOverlap = topSellingRaw.filter(
+    (p) => !topSellingIds.has(String(p.id))
+  );
+  const topSellingData = padWithUsaDemoProductsExcluding(
+    topSellingWithoutOverlap,
+    4,
+    excludeFromTopSelling
+  );
+
+  const bannerSlides: BannerSlide[] = [...US_BRAND_HERO_SLIDES];
 
   const btsVideos: BtsVideoData[] = btsData.map((v) => ({
     videoUrl: v.video_url,
@@ -45,13 +80,23 @@ export default async function Home() {
           <span className="relative z-10">Shop Now</span>
         </Link>
       </div>
-      <Header banners={bannerSlides.length > 0 ? bannerSlides : undefined} />
+      <Header banners={bannerSlides} />
 
       <main className="my-[50px] sm:my-[72px]">
         <ProductListSec
           title="NEW ARRIVALS"
           data={newArrivalsData}
           viewAllLink="/shop?filter=new-arrivals"
+          resolveProductHref={resolveHomeProductHref}
+        />
+        <div className="max-w-frame mx-auto px-4 xl:px-0">
+          <hr className="h-[1px] border-t-black/10 my-10 sm:my-16" />
+        </div>
+        <ProductListSec
+          title="ON SALE"
+          data={onSaleData}
+          viewAllLink="/shop?filter=on-sale"
+          resolveProductHref={resolveHomeProductHref}
         />
         <div className="max-w-frame mx-auto px-4 xl:px-0">
           <hr className="h-[1px] border-t-black/10 my-10 sm:my-16" />
@@ -61,6 +106,7 @@ export default async function Home() {
             title="top selling"
             data={topSellingData}
             viewAllLink="/shop?filter=top-selling"
+            resolveProductHref={resolveHomeProductHref}
           />
         </div>
         <div className="mb-[50px] sm:mb-20">

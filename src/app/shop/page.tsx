@@ -1,10 +1,15 @@
 import BreadcrumbShop from "@/components/shop-page/BreadcrumbShop";
 import ShopFilters from "@/components/shop-page/ShopFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FiSliders } from "react-icons/fi";
 import ProductCard from "@/components/common/ProductCard";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 import { getAllProducts, getNewArrivals, getTopSelling, getOnSaleProducts, getFilteredProducts } from "@/lib/supabase/products";
+import {
+  padOnSaleWithUsaDemoProducts,
+  padWithUsaDemoProducts,
+  padWithUsaDemoProductsExcluding,
+} from "@/lib/homepage-pad-demo-products";
+import { getAllUsaDemoProducts, usaDemoProductPath } from "@/lib/usa-demo-catalog";
+import type { Product } from "@/types/product.types";
 import { unstable_noStore } from "next/cache";
 
 // Make this page dynamic to avoid build-time Supabase calls
@@ -18,11 +23,20 @@ interface ShopPageProps {
   };
 }
 
+const SHOP_PAGE_SIZE = 9;
+
+function resolveShopProductHref(product: Product) {
+  if (String(product.id).startsWith("usa-")) {
+    return usaDemoProductPath(product);
+  }
+  return undefined;
+}
+
 const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
   unstable_noStore(); // Never cache: every request gets fresh data
   const filter = searchParams?.filter || 'all';
   const categoryId = searchParams?.category;
-  const limit = 9;
+  const limit = SHOP_PAGE_SIZE;
   const offset = 0;
 
   // Parse attribute filters from URL params
@@ -70,11 +84,33 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
     }
   }
 
+  // When Supabase has no rows for these views, show the same USA demo catalog as the homepage.
+  if (!categoryId && Object.keys(attributeFilters).length === 0 && products.length === 0) {
+    if (filter === "new-arrivals" || filter === "all") {
+      products = padWithUsaDemoProducts([], limit);
+    } else if (filter === "on-sale") {
+      products = padOnSaleWithUsaDemoProducts([], limit, []);
+    } else if (filter === "top-selling") {
+      products = padWithUsaDemoProductsExcluding(
+        [],
+        limit,
+        getAllUsaDemoProducts().slice(0, limit)
+      );
+    }
+  }
+
+  const breadcrumbSegment =
+    categoryId || Object.keys(attributeFilters).length > 0
+      ? pageTitle
+      : filter !== "all"
+        ? pageTitle
+        : undefined;
+
   return (
     <main className="pb-20">
       <div className="max-w-frame mx-auto px-4 xl:px-0">
         <hr className="h-[1px] border-t-black/10 mb-5 sm:mb-6" />
-        <BreadcrumbShop />
+        <BreadcrumbShop segment={breadcrumbSegment} />
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters Sidebar */}
           <div className="lg:w-64 flex-shrink-0">
@@ -90,7 +126,9 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
             </div>
             <div className="flex flex-col sm:items-center sm:flex-row">
               <span className="text-sm md:text-base text-black/60 mr-3">
-                Showing 1-{products.length} of {products.length} Products
+                {products.length === 0
+                  ? "No products to show"
+                  : `Showing 1–${products.length} of ${products.length} products`}
               </span>
               <div className="flex items-center">
                 Sort by:{" "}
@@ -110,7 +148,11 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
           <div className="w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
             {products.length > 0 ? (
               products.map((product) => (
-              <ProductCard key={product.id} data={product} />
+                <ProductCard
+                  key={product.id}
+                  data={product}
+                  href={resolveShopProductHref(product)}
+                />
               ))
             ) : (
               <div className="col-span-full text-center py-12">
@@ -118,47 +160,15 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
               </div>
             )}
           </div>
-          <hr className="border-t-black/10" />
-          <Pagination className="justify-between">
-            <PaginationPrevious href="#" className="border border-black/10" />
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm" isActive>
-                  1
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm">
-                  2
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem className="hidden lg:block">
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm">
-                  3
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis className="text-black/50 font-medium text-sm" />
-              </PaginationItem>
-              <PaginationItem className="hidden lg:block">
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm">
-                  8
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem className="hidden sm:block">
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm">
-                  9
-                </PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#" className="text-black/50 font-medium text-sm">
-                  10
-                </PaginationLink>
-              </PaginationItem>
-            </PaginationContent>
-
-            <PaginationNext href="#" className="border border-black/10" />
-          </Pagination>
+          {products.length > limit ? (
+            <>
+              <hr className="border-t-black/10" />
+              <p className="text-center text-sm text-black/50">
+                Pagination will appear here when the catalog has more than {limit} items in this
+                view.
+              </p>
+            </>
+          ) : null}
           </div>
         </div>
       </div>

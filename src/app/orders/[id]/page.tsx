@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { integralCF } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
+import { formatUSD } from "@/lib/format-currency";
 import { getOrderDetailsById } from "@/lib/supabase/orders";
 import {
   Breadcrumb,
@@ -213,10 +214,10 @@ const OrderDetailsPage = () => {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-black/60">
-                            ${item.unit_price.toFixed(2)} each
+                            {formatUSD(item.unit_price)} each
                           </span>
                           <span className="font-bold">
-                            ${item.total_price.toFixed(2)}
+                            {formatUSD(item.total_price)}
                           </span>
                         </div>
                       </div>
@@ -239,28 +240,28 @@ const OrderDetailsPage = () => {
               <div className="bg-white border border-black/10 rounded-lg p-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-black/60">Subtotal</span>
-                  <span>${order.subtotal.toFixed(2)}</span>
+                  <span>{formatUSD(order.subtotal)}</span>
                 </div>
                 {order.discount_amount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-black/60">Discount</span>
-                    <span className="text-green-600">-${order.discount_amount.toFixed(2)}</span>
+                    <span className="text-green-600">{formatUSD(-order.discount_amount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-black/60">Shipping</span>
-                  <span>${order.shipping_amount.toFixed(2)}</span>
+                  <span>{formatUSD(order.shipping_amount)}</span>
                 </div>
                 {order.tax_amount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-black/60">Tax</span>
-                    <span>${order.tax_amount.toFixed(2)}</span>
+                    <span>{formatUSD(order.tax_amount)}</span>
                   </div>
                 )}
                 <hr className="border-t-black/10 my-3" />
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>${order.total_amount.toFixed(2)}</span>
+                  <span>{formatUSD(order.total_amount)}</span>
                 </div>
               </div>
             </div>

@@ -71,26 +71,45 @@ const OrderConfirmationPage = () => {
             {orderNumber && " You will receive a confirmation email shortly."}
           </p>
           
-          {/* Payment Instructions for Non-COD Methods */}
-          {order && order.payment_method && order.payment_method !== "cod" && (
+          {/* Payment instructions for bank / legacy prepaid methods */}
+          {order &&
+            order.payment_method &&
+            order.payment_method !== "cod" && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6 w-full">
-              <h2 className="font-bold text-lg mb-3 text-yellow-900">Payment Instructions</h2>
+              <h2 className="font-bold text-lg mb-3 text-yellow-900">Payment instructions</h2>
               <p className="text-black/80 mb-4">
-                {order.payment_method === "easypaisa" && "Please send the payment via EasyPaisa using the account details shown during checkout."}
-                {order.payment_method === "jazzcash" && "Please send the payment via JazzCash using the account details shown during checkout."}
-                {order.payment_method === "bank" && "Please transfer the payment to the bank account shown during checkout."}
+                {order.payment_method === "bank" &&
+                  "Complete your Capital One bank transfer (ACH or wire) in USD using the account details from checkout. We will match your payment using the reference you entered."}
+                {order.payment_method === "paypal" &&
+                  "Please complete your PayPal payment in USD using the details shown during checkout (legacy order)."}
+                {order.payment_method === "venmo" &&
+                  "Please send your Venmo payment in USD using the details shown during checkout (legacy order)."}
+                {order.payment_method === "zelle" &&
+                  "Please send your Zelle payment in USD using the details shown during checkout (legacy order)."}
+                {order.payment_method === "easypaisa" &&
+                  "Please send the payment using the account details shown during checkout (legacy method)."}
+                {order.payment_method === "jazzcash" &&
+                  "Please send the payment using the account details shown during checkout (legacy method)."}
               </p>
-              {order.notes && order.notes.includes("Transaction ID") && (
-                <p className="text-sm text-black/70 mb-4">
-                  <span className="font-medium">Transaction ID:</span> {order.notes.replace("Transaction ID: ", "")}
+              {order.notes?.trim() ? (
+                <p className="mb-4 break-words text-sm text-black/70">
+                  <span className="font-medium text-black">Payment details from checkout:</span>{" "}
+                  {order.notes}
                 </p>
-              )}
+              ) : null}
               <div className="bg-white rounded-lg p-4 border border-yellow-300">
-                <p className="font-semibold text-black mb-2">📱 Send Payment Screenshot</p>
+                <p className="font-semibold text-black mb-2">Payment confirmation</p>
                 <p className="text-sm text-black/80">
-                  After sending the money, please send the payment screenshot on this number:
+                  After paying, email a receipt or screenshot to:
                 </p>
-                <p className="text-lg font-bold text-black mt-2">+92-300-1234567</p>
+                <p className="text-lg font-bold text-black mt-2">
+                  <a
+                    href="mailto:raexyhacks68@gmail.com"
+                    className="underline underline-offset-2 hover:text-black/80"
+                  >
+                    raexyhacks68@gmail.com
+                  </a>
+                </p>
                 <p className="text-xs text-black/60 mt-2">
                   Include your order number ({orderNumber}) in the message
                 </p>

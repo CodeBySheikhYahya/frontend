@@ -60,18 +60,41 @@ const ResTopNavbar = ({ data }: { data: NavMenu }) => {
                       <AccordionTrigger className="text-left p-0 py-0.5 font-normal text-base">
                         {item.label}
                       </AccordionTrigger>
-                      <AccordionContent className="p-4 pb-0 border-l flex flex-col">
-                        {item.children.map((itemChild, idx) => (
-                          <SheetClose
-                            key={itemChild.id}
-                            asChild
-                            className="w-fit py-2 text-base"
+                      <AccordionContent className="p-4 pb-0 border-l flex flex-col gap-1">
+                        <SheetClose asChild className="w-fit py-1">
+                          <Link
+                            href="/usa-shop"
+                            className="text-sm font-semibold text-black"
                           >
-                            <Link href={itemChild.url ?? "/"}>
-                              {itemChild.label}
-                            </Link>
-                          </SheetClose>
-                        ))}
+                            All collections
+                          </Link>
+                        </SheetClose>
+                        {item.children.map((itemChild) => {
+                          const nested = (itemChild as { children?: { id: number; label: string; url?: string }[] })
+                            .children;
+                          return (
+                            <div key={itemChild.id} className="flex flex-col gap-1">
+                              <SheetClose asChild className="w-fit py-1">
+                                <Link
+                                  href={itemChild.url ?? "/"}
+                                  className="text-base font-medium"
+                                >
+                                  {itemChild.label}
+                                </Link>
+                              </SheetClose>
+                              {nested?.map((sub) => (
+                                <SheetClose key={sub.id} asChild className="w-fit py-1 pl-3">
+                                  <Link
+                                    href={sub.url ?? "/"}
+                                    className="text-sm text-black/80"
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                </SheetClose>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>

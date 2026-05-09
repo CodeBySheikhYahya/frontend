@@ -460,7 +460,7 @@ export default function AddProductPage() {
                 Base Price *
               </label>
               <InputGroup className="bg-[#F0F0F0]">
-                <InputGroup.Text>$</InputGroup.Text>
+                <InputGroup.Text className="text-xs text-black/60">USD</InputGroup.Text>
                 <InputGroup.Input
                   type="number"
                   step="0.01"
@@ -500,7 +500,7 @@ export default function AddProductPage() {
                   {discountType === "percentage" ? (
                     <InputGroup.Text>%</InputGroup.Text>
                   ) : (
-                    <InputGroup.Text>$</InputGroup.Text>
+                    <InputGroup.Text className="text-xs text-black/60">USD</InputGroup.Text>
                   )}
                   <InputGroup.Input
                     type="number"
@@ -943,7 +943,7 @@ export default function AddProductPage() {
                       Price Override
                     </label>
                     <InputGroup className="bg-[#F0F0F0]">
-                      <InputGroup.Text className="text-xs">$</InputGroup.Text>
+                      <InputGroup.Text className="text-xs text-black/60">USD</InputGroup.Text>
                       <InputGroup.Input
                         type="number"
                         step="0.01"

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useAppSelector } from "@/lib/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks/redux";
 import { RootState } from "@/lib/store";
+import { clearCart } from "@/lib/features/carts/cartsSlice";
 import { Button } from "@/components/ui/button";
 import InputGroup from "@/components/ui/input-group";
 import Link from "next/link";
@@ -18,8 +19,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { createCODOrder } from "@/lib/supabase/orders";
 import { useRouter } from "next/navigation";
+import { formatUSD } from "@/lib/format-currency";
+import { CONTACT_EMAIL } from "@/lib/contact-constants";
+import { CheckCircle2, ImagePlus, X } from "lucide-react";
 
 const shippingSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -36,7 +39,21 @@ const shippingSchema = z.object({
 type ShippingFormData = z.infer<typeof shippingSchema>;
 
 
+type PlacedLineItem = {
+  key: string;
+  displayId: string;
+  name: string;
+  quantity: number;
+};
+
+function generateClientOrderRef() {
+  const t = Date.now().toString(36).toUpperCase();
+  const r = Math.floor(100 + Math.random() * 900);
+  return `SRX-${t}-${r}`;
+}
+
 const CheckoutPage = () => {
+  const dispatch = useAppDispatch();
   const { cart, adjustedTotalPrice, totalPrice } = useAppSelector(
     (state: RootState) => state.carts
   );
@@ -51,59 +68,81 @@ const CheckoutPage = () => {
     apartment: "",
     city: "",
     zipCode: "",
-    country: "Pakistan",
+    country: "United States",
   });
 
-  const [pakistanCities, setPakistanCities] = useState<Array<{ name: string }>>([]);
+  const [usCities, setUsCities] = useState<Array<{ name: string }>>([]);
   const [citySearch, setCitySearch] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
 
   useEffect(() => {
     import("country-state-city").then(({ City }) => {
-      setPakistanCities(
-        (City.getCitiesOfCountry("PK") || []).map((c) => ({ name: c.name || "" }))
+      setUsCities(
+        (City.getCitiesOfCountry("US") || []).map((c) => ({ name: c.name || "" }))
       );
     });
   }, []);
 
   const filteredCities = useMemo(
     () =>
-      pakistanCities
+      usCities
         .filter((c) => c.name.toLowerCase().includes(citySearch.toLowerCase()))
         .slice(0, 50),
-    [pakistanCities, citySearch]
+    [usCities, citySearch]
   );
 
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<string>("cod");
+  const paymentMethod = "bank" as const;
   const [transactionId, setTransactionId] = useState<string>("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [showThanksModal, setShowThanksModal] = useState(false);
+  const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
+  const [placedLineItems, setPlacedLineItems] = useState<PlacedLineItem[]>([]);
 
-  // Fake account details
-  const accountDetails = {
-    easypaisa: {
-      name: "EasyPaisa",
-      accountNumber: "0312-3456789",
-      accountName: "Your Store Name",
-      instructions: "Send money via EasyPaisa app or agent"
-    },
-    jazzcash: {
-      name: "JazzCash",
-      accountNumber: "0300-1234567",
-      accountName: "Your Store Name",
-      instructions: "Send money via JazzCash app or agent"
-    },
-    bank: {
-      name: "Direct Bank Transfer",
-      accountNumber: "PK12-3456-7890-1234-5678",
-      accountName: "Your Store Name",
-      bankName: "Bank Name",
-      instructions: "Transfer amount to the account below"
+  useEffect(() => {
+    return () => {
+      if (receiptPreview) URL.revokeObjectURL(receiptPreview);
+    };
+  }, [receiptPreview]);
+
+  function clearReceipt() {
+    if (receiptPreview) URL.revokeObjectURL(receiptPreview);
+    setReceiptPreview(null);
+    setReceiptFile(null);
+  }
+
+  function handleReceiptSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setSubmitError("Please upload an image file (PNG, JPG, or WebP).");
+      return;
     }
+    if (file.size > 5 * 1024 * 1024) {
+      setSubmitError("Screenshot must be 5 MB or smaller.");
+      return;
+    }
+    setSubmitError(null);
+    if (receiptPreview) URL.revokeObjectURL(receiptPreview);
+    setReceiptFile(file);
+    setReceiptPreview(URL.createObjectURL(file));
+  }
+
+  const capitalOneBank = {
+    bankName: "Capital One",
+    routingNumber: "065000090",
+    accountNumber: "5734186888",
+    accountName: "Merchant Provider SRX",
+    businessAddress: "12849 Climbing Ivy Dr",
+    instructions:
+      "Send a domestic ACH or wire transfer in U.S. dollars. Put your order number in the memo / reference field so we can match your payment.",
   };
 
-  if (!cart || cart.items.length === 0) {
+  if ((!cart || cart.items.length === 0) && !showThanksModal) {
     return (
       <main className="pb-20">
         <div className="max-w-frame mx-auto px-4 xl:px-0">
@@ -143,47 +182,59 @@ const CheckoutPage = () => {
     // Clear errors if validation passes
     setErrors({});
     
-    // Validate transaction ID for non-COD methods
-    if (paymentMethod !== "cod" && !transactionId.trim()) {
-      setSubmitError("Please enter transaction ID/reference number");
+    if (!transactionId.trim() && !receiptFile) {
+      setSubmitError(
+        "Enter your confirmation / trace / reference number from Capital One, or upload a payment receipt screenshot (or both)."
+      );
       return;
     }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const orderResult = await createCODOrder({
-        cartItems: cart.items,
-        shippingInfo: {
-          firstName: shippingInfo.firstName,
-          lastName: shippingInfo.lastName,
-          email: shippingInfo.email,
-          phone: shippingInfo.phone,
-          address: shippingInfo.address,
-          apartment: shippingInfo.apartment || undefined,
-          city: shippingInfo.city,
-          zipCode: shippingInfo.zipCode,
-          country: shippingInfo.country,
-        },
-        paymentMethod: paymentMethod,
-        transactionId: paymentMethod !== "cod" ? transactionId : undefined,
-        subtotal: totalPrice,
-        discountAmount: totalPrice - adjustedTotalPrice,
-        totalAmount: adjustedTotalPrice,
-      });
 
-      if (orderResult.success && orderResult.orderNumber) {
-        // Redirect to order confirmation page
-        router.push(`/orders/confirmation?orderNumber=${orderResult.orderNumber}`);
-      } else {
-        setSubmitError(orderResult.error || "Failed to create order. Please try again.");
-        setIsSubmitting(false);
-      }
-      } catch (error: any) {
-        setSubmitError(error.message || "An unexpected error occurred. Please try again.");
+    const noteParts: string[] = [];
+    if (transactionId.trim()) {
+      noteParts.push(`Confirmation / trace / reference: ${transactionId.trim()}`);
+    }
+    if (receiptFile) {
+      noteParts.push(`Receipt screenshot (filename): ${receiptFile.name}`);
+    }
+    const combinedNotes = noteParts.join(" | ");
+
+    setIsSubmitting(true);
+
+    try {
+      await new Promise((r) => setTimeout(r, 400));
+
+      const orderRef = generateClientOrderRef();
+      const lines: PlacedLineItem[] = cart.items.map((item, idx) => ({
+        key: `${String(item.id)}-${idx}-${item.attributes.join("-")}`,
+        displayId:
+          item.productId != null && String(item.productId).trim() !== ""
+            ? String(item.productId)
+            : String(item.id),
+        name: item.name,
+        quantity: item.quantity,
+      }));
+
+      setPlacedOrderNumber(orderRef);
+      setPlacedLineItems(lines);
+      setShowThanksModal(true);
+      clearReceipt();
+      setTransactionId("");
+    } catch (error: unknown) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Something went wrong. Please try again."
+      );
+    } finally {
       setIsSubmitting(false);
     }
   };
+
+  function finishCheckoutAndNavigate(href: string) {
+    dispatch(clearCart());
+    setShowThanksModal(false);
+    setPlacedOrderNumber(null);
+    setPlacedLineItems([]);
+    router.push(href);
+  }
 
   return (
     <main className="pb-20">
@@ -398,117 +449,133 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
-              {/* Payment Method Selection */}
+              {/* Payment: Capital One bank transfer only */}
               <div className="mt-6">
                 <h2 className={cn([integralCF.className, "text-xl font-bold mb-4"])}>
-                  Payment Method
+                  Payment method
                 </h2>
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={paymentMethod === "cod"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-black focus:ring-black"
+                <div className="p-4 border border-black/10 rounded-lg bg-white">
+                  <div className="flex items-center gap-3 mb-4">
+                    <img
+                      src="/icons/capital-one-mark.svg"
+                      alt="Capital One"
+                      width={160}
+                      height={28}
+                      className="h-7 w-auto shrink-0"
                     />
-                    <div>
-                      <span className="font-medium">Cash on Delivery (COD)</span>
-                      <p className="text-sm text-black/60">Pay when you receive the order</p>
-                    </div>
-                  </label>
+                    <span className="text-sm font-medium text-black/80">
+                      Bank transfer (ACH / wire)
+                    </span>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-black/10 text-sm space-y-2">
+                    <p>
+                      <span className="font-medium">Bank:</span> {capitalOneBank.bankName}
+                    </p>
+                    <p>
+                      <span className="font-medium">Business address:</span>{" "}
+                      {capitalOneBank.businessAddress}
+                    </p>
+                    <p>
+                      <span className="font-medium">Routing number (ABA):</span>{" "}
+                      {capitalOneBank.routingNumber}
+                    </p>
+                    <p>
+                      <span className="font-medium">Account number:</span>{" "}
+                      {capitalOneBank.accountNumber}
+                    </p>
+                    <p>
+                      <span className="font-medium">Account name:</span>{" "}
+                      {capitalOneBank.accountName}
+                    </p>
+                    <p className="text-black/60 pt-2 border-t border-black/10">
+                      {capitalOneBank.instructions}
+                    </p>
 
-                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="easypaisa"
-                      checked={paymentMethod === "easypaisa"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-black focus:ring-black"
-                    />
-                    <div>
-                      <span className="font-medium">EasyPaisa</span>
-                      <p className="text-sm text-black/60">Send money via EasyPaisa</p>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="jazzcash"
-                      checked={paymentMethod === "jazzcash"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-black focus:ring-black"
-                    />
-                    <div>
-                      <span className="font-medium">JazzCash</span>
-                      <p className="text-sm text-black/60">Send money via JazzCash</p>
-                    </div>
-                  </label>
-
-                  <label className="flex items-center space-x-3 cursor-pointer p-4 border border-black/10 rounded-lg hover:bg-gray-50">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="bank"
-                      checked={paymentMethod === "bank"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-black focus:ring-black"
-                    />
-                    <div>
-                      <span className="font-medium">Direct Bank Transfer</span>
-                      <p className="text-sm text-black/60">Transfer directly to bank account</p>
-                    </div>
-                  </label>
-                </div>
-
-                {/* Account Details for Non-COD Methods */}
-                {(paymentMethod === "easypaisa" || paymentMethod === "jazzcash" || paymentMethod === "bank") && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-black/10">
-                    <h3 className="font-semibold mb-3">Account Details</h3>
-                    {paymentMethod === "easypaisa" && (
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Account Number:</span> {accountDetails.easypaisa.accountNumber}</p>
-                        <p><span className="font-medium">Account Name:</span> {accountDetails.easypaisa.accountName}</p>
-                        <p className="text-black/60 mt-2">{accountDetails.easypaisa.instructions}</p>
+                    <div className="mt-5 space-y-4 border-t border-black/10 pt-5">
+                      <div>
+                        <label
+                          htmlFor="bank-confirmation"
+                          className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-black/55"
+                        >
+                          Confirmation / trace / reference
+                        </label>
+                        <InputGroup className="bg-white">
+                          <InputGroup.Input
+                            id="bank-confirmation"
+                            type="text"
+                            autoComplete="off"
+                            placeholder="e.g. confirmation number, trace #, or transaction ID from Capital One"
+                            value={transactionId}
+                            onChange={(e) => setTransactionId(e.target.value)}
+                            className="bg-transparent"
+                          />
+                        </InputGroup>
+                        <p className="mt-2 text-xs leading-relaxed text-black/55">
+                          On Capital One, completed transfers usually show a{" "}
+                          <span className="font-medium text-black/70">confirmation</span> or{" "}
+                          <span className="font-medium text-black/70">reference</span> on the
+                          receipt; ACH transfers may list a{" "}
+                          <span className="font-medium text-black/70">trace number</span>. Wires
+                          may show a{" "}
+                          <span className="font-medium text-black/70">Federal reference</span> or
+                          similar. Copy the value that uniquely identifies your payment.
+                        </p>
                       </div>
-                    )}
-                    {paymentMethod === "jazzcash" && (
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Account Number:</span> {accountDetails.jazzcash.accountNumber}</p>
-                        <p><span className="font-medium">Account Name:</span> {accountDetails.jazzcash.accountName}</p>
-                        <p className="text-black/60 mt-2">{accountDetails.jazzcash.instructions}</p>
+
+                      <div>
+                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-black/55">
+                          Payment receipt (screenshot)
+                        </label>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                          <label className="flex flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-black/15 bg-white px-4 py-6 text-center transition hover:border-black/30 hover:bg-black/[0.02] sm:min-h-[120px]">
+                            <ImagePlus className="mb-2 h-8 w-8 text-black/40" aria-hidden />
+                            <span className="text-sm font-medium text-black">
+                              Tap to upload screenshot
+                            </span>
+                            <span className="mt-1 text-xs text-black/45">
+                              PNG, JPG, or WebP · max 5 MB · stays in your browser until you place
+                              the order
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              className="sr-only"
+                              onChange={handleReceiptSelect}
+                            />
+                          </label>
+                          {receiptPreview ? (
+                            <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-black/[0.03] sm:max-w-[220px] sm:shrink-0">
+                              <button
+                                type="button"
+                                onClick={clearReceipt}
+                                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-white shadow-md transition hover:bg-black"
+                                aria-label="Remove screenshot"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              {/* eslint-disable-next-line @next/next/no-img-element -- blob: preview */}
+                              <img
+                                src={receiptPreview}
+                                alt="Payment receipt preview"
+                                className="mx-auto max-h-[200px] w-full object-contain sm:max-h-[220px]"
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                        <p className="mt-2 text-xs text-black/55">
+                          Optional but recommended.                           Also email the same screenshot to{" "}
+                          <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            className="font-medium text-black underline underline-offset-2"
+                          >
+                            {CONTACT_EMAIL}
+                          </a>{" "}
+                          with your order number after you place the order.
+                        </p>
                       </div>
-                    )}
-                    {paymentMethod === "bank" && (
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Bank Name:</span> {accountDetails.bank.bankName}</p>
-                        <p><span className="font-medium">Account Number:</span> {accountDetails.bank.accountNumber}</p>
-                        <p><span className="font-medium">Account Name:</span> {accountDetails.bank.accountName}</p>
-                        <p className="text-black/60 mt-2">{accountDetails.bank.instructions}</p>
-                      </div>
-                    )}
-                    
-                    {/* Transaction ID Input */}
-                    <div className="mt-4">
-                      <InputGroup className="bg-white">
-                        <InputGroup.Input
-                          type="text"
-                          placeholder="Enter Transaction ID / Reference Number"
-                          value={transactionId}
-                          onChange={(e) => setTransactionId(e.target.value)}
-                          className="bg-transparent"
-                        />
-                      </InputGroup>
-                      <p className="text-xs text-black/60 mt-1">
-                        Enter the transaction ID or reference number after sending the money
-                      </p>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
             </form>
@@ -538,11 +605,16 @@ const CheckoutPage = () => {
                         Size: {item.attributes[0]} | Color: {item.attributes[1]}
                       </p>
                       <p className="text-sm font-medium">
-                        ${item.discount.percentage > 0
-                          ? Math.round(item.price - (item.price * item.discount.percentage) / 100)
-                          : item.discount.amount > 0
-                          ? item.price - item.discount.amount
-                          : item.price}{" "}
+                        {formatUSD(
+                          item.discount.percentage > 0
+                            ? Math.round(
+                                item.price -
+                                  (item.price * item.discount.percentage) / 100
+                              )
+                            : item.discount.amount > 0
+                              ? item.price - item.discount.amount
+                              : item.price
+                        )}{" "}
                         x {item.quantity}
                       </p>
                     </div>
@@ -556,12 +628,12 @@ const CheckoutPage = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-lg">
                   <span className="text-black/60">Subtotal</span>
-                  <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                  <span className="font-medium">{formatUSD(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between text-lg">
                   <span className="text-black/60">Discount</span>
                   <span className="font-medium text-[#FF3333]">
-                    -${(totalPrice - adjustedTotalPrice).toFixed(2)}
+                    {formatUSD(-(totalPrice - adjustedTotalPrice))}
                   </span>
                 </div>
                 <div className="flex justify-between text-lg">
@@ -571,7 +643,7 @@ const CheckoutPage = () => {
                 <hr className="h-[1px] border-t-black/10" />
                 <div className="flex justify-between text-2xl font-bold">
                   <span>Total</span>
-                  <span>${adjustedTotalPrice.toFixed(2)}</span>
+                  <span>{formatUSD(adjustedTotalPrice)}</span>
                 </div>
               </div>
 
@@ -583,7 +655,7 @@ const CheckoutPage = () => {
               <Button
                 type="submit"
                 form="checkout-form"
-                disabled={isSubmitting}
+                disabled={isSubmitting || showThanksModal}
                 className="w-full bg-black text-white hover:bg-black/90 h-12 text-base font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting
@@ -594,6 +666,83 @@ const CheckoutPage = () => {
           </div>
         </div>
       </div>
+
+      {showThanksModal && placedOrderNumber ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-[2px]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="thanks-title"
+        >
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-black/10 bg-white p-6 shadow-2xl sm:p-8">
+            <div className="mb-4 flex justify-center">
+              <CheckCircle2 className="h-14 w-14 text-emerald-600" aria-hidden />
+            </div>
+            <h2
+              id="thanks-title"
+              className={cn(integralCF.className, "text-center text-2xl font-bold text-black")}
+            >
+              Thank you — your request is recorded
+            </h2>
+            <p className="mt-3 text-center text-sm leading-relaxed text-black/65">
+              Checkout runs in your browser only (no database). Save your{" "}
+              <span className="font-semibold text-black">order reference</span> and the product
+              IDs below, then email your payment receipt to{" "}
+              <a
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Order ${placedOrderNumber}`)}`}
+                className="font-semibold text-black underline underline-offset-2"
+              >
+                {CONTACT_EMAIL}
+              </a>
+              .
+            </p>
+            <div className="mt-6 rounded-xl bg-[#F4F2F0] px-4 py-4 text-center">
+              <p className="text-xs font-semibold uppercase tracking-wide text-black/45">
+                Order reference
+              </p>
+              <p className="mt-1 break-all font-mono text-lg font-bold text-black sm:text-xl">
+                {placedOrderNumber}
+              </p>
+            </div>
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-black/45">
+                Items in this checkout
+              </p>
+              <ul className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-black/10 bg-white p-3 text-left text-sm">
+                {placedLineItems.map((line) => (
+                  <li
+                    key={line.key}
+                    className="border-b border-black/[0.06] py-2 last:border-0 last:pb-0"
+                  >
+                    <span className="font-medium text-black">{line.name}</span>
+                    <span className="mt-0.5 block font-mono text-xs text-black/55">
+                      Product ID: {line.displayId}
+                      {line.quantity > 1 ? ` × ${line.quantity}` : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                className="h-12 flex-1 rounded-full bg-black text-white hover:bg-black/90"
+                onClick={() => finishCheckoutAndNavigate("/shop")}
+              >
+                Continue shopping
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 flex-1 rounded-full border-black/20"
+                onClick={() => finishCheckoutAndNavigate("/usa-shop")}
+              >
+                Browse USA Shop
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 };

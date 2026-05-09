@@ -11,12 +11,12 @@ const HolyLoader = dynamic(() => import("holy-loader"), { ssr: false });
 const PWAProvider = dynamic(() => import("@/components/PWAProvider"), { ssr: false });
 
 export const metadata: Metadata = {
-  title: "Hulmattire by STM",
-  description: "Discover and shop the latest fashion trends at Hulmattire by STM",
+  title: "SRX Retail",
+  description: "Discover and shop at SRX — your retailer storefront",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Hulmattire by STM",
+    title: "SRX Retail",
   },
   other: {
     "mobile-web-app-capable": "yes",

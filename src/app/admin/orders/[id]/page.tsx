@@ -16,6 +16,7 @@ import {
   type PaymentStatus,
 } from "@/lib/supabase/admin-orders";
 import { ArrowLeft, Save } from "lucide-react";
+import { formatUSD } from "@/lib/format-currency";
 
 const ORDER_STATUSES: OrderStatus[] = [
   "pending",
@@ -184,10 +185,10 @@ export default function AdminOrderDetailsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-black/60">
-                          ${item.unit_price.toFixed(2)} each
+                          {formatUSD(item.unit_price)} each
                         </span>
                         <span className="font-bold">
-                          ${item.total_price.toFixed(2)}
+                          {formatUSD(item.total_price)}
                         </span>
                       </div>
                     </div>
@@ -241,31 +242,31 @@ export default function AdminOrderDetailsPage() {
             <div className="bg-white border border-black/10 rounded-lg p-6 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-black/60">Subtotal</span>
-                <span>${Number(order.subtotal).toFixed(2)}</span>
+                <span>{formatUSD(Number(order.subtotal))}</span>
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-black/60">Discount</span>
                   <span className="text-green-600">
-                    -${Number(order.discount_amount).toFixed(2)}
+                    {formatUSD(-Number(order.discount_amount))}
                   </span>
                 </div>
               )}
               {order.shipping_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-black/60">Shipping</span>
-                  <span>${Number(order.shipping_amount).toFixed(2)}</span>
+                  <span>{formatUSD(Number(order.shipping_amount))}</span>
                 </div>
               )}
               {order.tax_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-black/60">Tax</span>
-                  <span>${Number(order.tax_amount).toFixed(2)}</span>
+                  <span>{formatUSD(Number(order.tax_amount))}</span>
                 </div>
               )}
               <div className="border-t border-black/10 pt-3 flex justify-between font-bold">
                 <span>Total</span>
-                <span>${Number(order.total_amount).toFixed(2)}</span>
+                <span>{formatUSD(Number(order.total_amount))}</span>
               </div>
             </div>
           </div>

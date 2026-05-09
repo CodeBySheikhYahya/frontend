@@ -15,9 +15,16 @@ type ProductListSecProps = {
   title: string;
   data: Product[];
   viewAllLink?: string;
+  /** e.g. link USA demo catalog PDPs when `product.id` starts with `usa-` */
+  resolveProductHref?: (product: Product) => string | undefined;
 };
 
-const ProductListSec = ({ title, data, viewAllLink }: ProductListSecProps) => {
+const ProductListSec = ({
+  title,
+  data,
+  viewAllLink,
+  resolveProductHref,
+}: ProductListSecProps) => {
   return (
     <section className="max-w-frame mx-auto text-center">
       <motion.h2
@@ -47,10 +54,13 @@ const ProductListSec = ({ title, data, viewAllLink }: ProductListSecProps) => {
           <CarouselContent className="mx-4 xl:mx-0 space-x-4 sm:space-x-5">
             {data.map((product) => (
               <CarouselItem
-                key={product.id}
+                key={`${title}-${product.id}`}
                 className="w-full max-w-[198px] sm:max-w-[295px] pl-0"
               >
-                <ProductCard data={product} />
+                <ProductCard
+                  data={product}
+                  href={resolveProductHref?.(product)}
+                />
               </CarouselItem>
             ))}
           </CarouselContent>

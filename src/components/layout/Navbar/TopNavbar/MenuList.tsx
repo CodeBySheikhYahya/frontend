@@ -14,9 +14,12 @@ import { MenuListData } from "../navbar.types";
 export type MenuListProps = {
   data: MenuListData;
   label: string;
+  /** Optional row above the grid (e.g. link to full shop index) */
+  browseAllHref?: string;
+  browseAllLabel?: string;
 };
 
-export function MenuList({ data, label }: MenuListProps) {
+export function MenuList({ data, label, browseAllHref, browseAllLabel }: MenuListProps) {
   const [hoveredItemId, setHoveredItemId] = useState<number | null>(null);
 
   // Find the item that's being hovered to show its children
@@ -29,6 +32,16 @@ export function MenuList({ data, label }: MenuListProps) {
         {label}
       </NavigationMenuTrigger>
       <NavigationMenuContent>
+        {browseAllHref && browseAllLabel ? (
+          <div className="border-b border-gray-200 bg-white px-4 py-2.5">
+            <Link
+              href={browseAllHref}
+              className="text-sm font-medium text-foreground hover:underline"
+            >
+              {browseAllLabel}
+            </Link>
+          </div>
+        ) : null}
         <div
           className="grid w-[600px] grid-cols-2 gap-0 p-0"
           onMouseLeave={() => setHoveredItemId(null)}

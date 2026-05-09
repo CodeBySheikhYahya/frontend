@@ -18,6 +18,7 @@ import {
   hasLowStock,
   isOutOfStock,
 } from "@/lib/supabase/admin-products";
+import { formatUSD } from "@/lib/format-currency";
 
 interface DashboardStats {
   totalOrders: number;
@@ -119,7 +120,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Total Revenue",
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: formatUSD(stats.totalRevenue),
       icon: DollarSign,
       color: "bg-purple-500",
     },

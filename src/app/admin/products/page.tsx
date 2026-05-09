@@ -16,6 +16,7 @@ import {
   type AdminProduct,
 } from "@/lib/supabase/admin-products";
 import { Plus, Edit, Trash2, Eye, Package, AlertTriangle } from "lucide-react";
+import { formatUSD } from "@/lib/format-currency";
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -152,13 +153,13 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          ${Number(product.base_price).toFixed(2)}
+                          {formatUSD(Number(product.base_price))}
                         </div>
                         {product.discount_value && (
                           <div className="text-xs text-green-600">
                             {product.discount_type === "percentage"
                               ? `${product.discount_value}% off`
-                              : `$${product.discount_value} off`}
+                              : `${formatUSD(Number(product.discount_value))} off`}
                           </div>
                         )}
                       </td>

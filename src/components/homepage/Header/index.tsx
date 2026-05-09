@@ -3,19 +3,18 @@
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-
-const fallbackSlides = [
-  { type: "image" as const, src: "/images/banner-slide-1.png", alt: "Emerald green embroidered collection" },
-  { type: "image" as const, src: "/images/banner-slide-2.png", alt: "Burgundy red anarkali collection" },
-  { type: "image" as const, src: "/images/banner-slide-3.png", alt: "Navy blue sharara collection" },
-  { type: "image" as const, src: "/images/banner-slide-4.png", alt: "Pastel pink lawn collection" },
-];
+import { US_BRAND_HERO_SLIDES } from "@/data/us-brand-hero-slides";
 
 export interface BannerSlide {
   type: "image" | "video";
+  /** Shown below `md` — keep portrait / phone-friendly art */
   src: string;
+  /** Optional wide image for `md` and up (desktop / tablet landscape) */
+  srcDesktop?: string;
   alt: string;
 }
+
+const fallbackSlides: BannerSlide[] = [...US_BRAND_HERO_SLIDES];
 
 interface HeaderProps {
   banners?: BannerSlide[];
@@ -58,6 +57,28 @@ const Header = ({ banners }: HeaderProps) => {
                 preload={i === 0 ? "auto" : "none"}
                 className="w-full h-full object-cover object-center"
               />
+            ) : slide.srcDesktop ? (
+              <>
+                <Image
+                  priority={i === 0}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  className="object-cover object-center md:hidden"
+                  sizes="100vw"
+                />
+                <Image
+                  priority={i === 0}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  src={slide.srcDesktop}
+                  alt=""
+                  fill
+                  className="hidden md:block object-cover object-center"
+                  sizes="100vw"
+                  aria-hidden
+                />
+              </>
             ) : (
               <Image
                 priority={i === 0}

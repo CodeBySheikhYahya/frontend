@@ -65,6 +65,8 @@ export interface CreateOrderData {
   }
   paymentMethod: string
   transactionId?: string
+  /** Full payment notes (confirmation, trace, receipt filename, etc.). Overrides default from `transactionId` when set. */
+  orderNotes?: string | null
   subtotal: number
   discountAmount: number
   totalAmount: number
@@ -99,9 +101,10 @@ export async function createCODOrder(data: CreateOrderData): Promise<OrderResult
       country: data.shippingInfo.country,
     }
 
-    // Prepare notes with transaction ID if provided
-    let orderNotes = null;
-    if (data.transactionId) {
+    let orderNotes: string | null = null;
+    if (data.orderNotes != null && String(data.orderNotes).trim() !== "") {
+      orderNotes = String(data.orderNotes).trim();
+    } else if (data.transactionId) {
       orderNotes = `Transaction ID: ${data.transactionId}`;
     }
 

@@ -11,7 +11,7 @@ const footerLinksData: FooterLinks[] = [
       {
         id: 11,
         label: "about",
-        url: "#",
+        url: "/about",
       },
       {
         id: 12,
@@ -37,22 +37,27 @@ const footerLinksData: FooterLinks[] = [
       {
         id: 21,
         label: "customer support",
-        url: "#",
+        url: "/faq",
+      },
+      {
+        id: 25,
+        label: "contact us",
+        url: "/contact",
       },
       {
         id: 22,
         label: "delivery details",
-        url: "#",
+        url: "/faq#deliveries",
       },
       {
         id: 23,
         label: "terms & conditions",
-        url: "#",
+        url: "/terms",
       },
       {
         id: 24,
         label: "privacy policy",
-        url: "#",
+        url: "/privacy",
       },
     ],
   },
@@ -62,23 +67,28 @@ const footerLinksData: FooterLinks[] = [
     children: [
       {
         id: 31,
-        label: "account",
-        url: "#",
+        label: "FAQs",
+        url: "/faq",
       },
       {
         id: 32,
         label: "manage deliveries",
-        url: "#",
+        url: "/faq#deliveries",
       },
       {
         id: 33,
         label: "orders",
-        url: "#",
+        url: "/faq#orders",
       },
       {
         id: 34,
         label: "payments",
-        url: "#",
+        url: "/faq#payments",
+      },
+      {
+        id: 35,
+        label: "account",
+        url: "/faq#account",
       },
     ],
   },

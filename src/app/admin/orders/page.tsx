@@ -15,6 +15,7 @@ import {
   type PaymentStatus,
 } from "@/lib/supabase/admin-orders";
 import { Eye, Package, Filter } from "lucide-react";
+import { formatUSD } from "@/lib/format-currency";
 
 const ORDER_STATUSES: Array<{ value: OrderStatus | "all"; label: string; color: string }> = [
   { value: "all", label: "All Orders", color: "bg-gray-500" },
@@ -235,7 +236,7 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          ${Number(order.total_amount).toFixed(2)}
+                          {formatUSD(Number(order.total_amount))}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
