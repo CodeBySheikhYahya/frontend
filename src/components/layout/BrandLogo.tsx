@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { brandScript } from "@/styles/fonts";
+import { satoshi } from "@/styles/fonts";
 
 type BrandLogoProps = {
   size?: "sm" | "md" | "lg";
@@ -7,18 +7,18 @@ type BrandLogoProps = {
 };
 
 const sizeMap = {
-  sm: { main: "text-2xl" },
-  md: { main: "text-3xl lg:text-4xl" },
-  lg: { main: "text-[32px] lg:text-[40px]" },
+  sm: { main: "text-sm" },
+  md: { main: "text-base lg:text-lg" },
+  lg: { main: "text-lg lg:text-xl" },
 };
 
 const BrandLogo = ({ size = "md", className }: BrandLogoProps) => {
   const s = sizeMap[size];
 
   return (
-    <span className={cn("inline-flex flex-col leading-none", className)}>
-      <span className={cn(brandScript.className, s.main, "leading-[1.1]")}>
-        SRX
+    <span className={cn("inline-flex leading-none", className)}>
+      <span className={cn(satoshi.className, s.main, "font-medium leading-tight")}>
+        Merchant Provider SRX LLC
       </span>
     </span>
   );
