@@ -15,7 +15,7 @@ type ProductListSecProps = {
   title: string;
   data: Product[];
   viewAllLink?: string;
-  /** e.g. link USA demo catalog PDPs when `product.id` starts with `usa-` */
+  /** Link catalog PDPs when `product.id` starts with `srx-` */
   resolveProductHref?: (product: Product) => string | undefined;
 };
 

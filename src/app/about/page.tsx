@@ -176,7 +176,7 @@ export default function AboutPage() {
               {
                 icon: Users,
                 title: "Community-minded",
-                body: "We grow with feedback—from fit notes to what you want next in the USA Shop collections.",
+                body: "We grow with feedback—from fit notes to what you want next in our private-label collections.",
               },
             ].map((item) => (
               <div
@@ -222,21 +222,20 @@ export default function AboutPage() {
 
             <div className="rounded-3xl border border-black/[0.06] bg-[#F7F5F3] p-8 lg:p-10">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-black/40">
-                USA Shop
+                Our collections
               </p>
               <h3 className={cn(integralCF.className, "mt-3 text-xl font-bold sm:text-2xl")}>
-                Demo collections, real structure
+                Generic, unbranded apparel
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-black/55 lg:text-base">
-                Explore West Coast Living, American Heritage, and Sunbelt & Resort as curated
-                stories—each with subcategories and PDPs that show multiple angles, the way a
-                premium site should.
+                Browse Men&apos;s Clothing, Women&apos;s Clothing, and Footwear &amp; Accessories —
+                every product uses a plain title with no third-party brand names.
               </p>
               <Button
                 asChild
                 className="mt-6 h-11 rounded-full bg-black px-6 text-white hover:bg-black/90"
               >
-                <Link href="/usa-shop">Browse USA Shop</Link>
+                <Link href="/usa-shop">Browse shop</Link>
               </Button>
             </div>
 
@@ -275,7 +274,7 @@ export default function AboutPage() {
             Ready to find your next favorite piece?
           </h2>
           <p className="mx-auto mt-5 max-w-lg text-base text-black/55 sm:text-lg">
-            Start on the homepage, filter the main shop, or jump straight into our USA demo
+            Start on the homepage, filter the main shop, or browse our private-label
             catalog—your cart stays consistent across the site.
           </p>
           <div className="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">

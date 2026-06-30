@@ -11,7 +11,7 @@ import {
   padWithUsaDemoProducts,
   padWithUsaDemoProductsExcluding,
 } from "@/lib/homepage-pad-demo-products";
-import { usaDemoProductPath } from "@/lib/usa-demo-catalog";
+import { isCatalogProductId, usaDemoProductPath } from "@/lib/usa-demo-catalog";
 import type { Product } from "@/types/product.types";
 import { getFeaturedReviews } from "@/lib/supabase/reviews";
 import { getActiveBtsVideos } from "@/lib/supabase/admin-bts";
@@ -27,7 +27,7 @@ const Reviews = dynamic(() => import("@/components/homepage/Reviews"));
 export const revalidate = 60;
 
 function resolveHomeProductHref(product: Product) {
-  if (String(product.id).startsWith("usa-")) {
+  if (isCatalogProductId(product.id)) {
     return usaDemoProductPath(product);
   }
   return undefined;

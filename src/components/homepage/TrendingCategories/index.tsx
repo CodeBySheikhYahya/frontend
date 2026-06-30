@@ -5,8 +5,8 @@ import * as motion from "framer-motion/client";
 import { USA_DEMO_PARENTS } from "@/lib/usa-demo-catalog";
 
 const browseAll = {
-  name: "Browse full USA Shop",
-  info: "All demo categories · 100–300 USD",
+  name: "Browse all collections",
+  info: "Men's · Women's · Accessories",
   image:
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=900&fit=crop&q=80",
   href: "/usa-shop",
@@ -33,7 +33,7 @@ const TrendingCategories = () => {
           transition={{ duration: 0.6 }}
           className="font-playfairDisplay text-[28px] md:text-[36px] leading-[1.15] text-[#1A1A1A] font-normal mb-2"
         >
-          USA collections (frontend demo)
+          Shop by category
         </motion.h2>
 
         <motion.p
@@ -43,9 +43,8 @@ const TrendingCategories = () => {
           transition={{ delay: 0.15, duration: 0.6 }}
           className="text-[13px] md:text-[14px] text-[#3D3D3D] mb-6 md:mb-8 max-w-2xl"
         >
-          Static categories for SRX — not loaded from Supabase. Each card shows a
-          typical USD spend band; open for subcategories and sample products styled
-          for US shoppers.
+          Private-label collections from Merchant Provider SRX LLC — generic, unbranded
+          apparel with no third-party brand names.
         </motion.p>
 
         <motion.div

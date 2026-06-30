@@ -45,7 +45,7 @@ export default function UsaDemoProductPage({ params }: PageProps) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/usa-shop">USA Shop</Link>
+                <Link href="/usa-shop">Shop</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -66,7 +66,7 @@ export default function UsaDemoProductPage({ params }: PageProps) {
             "text-center text-[32px] md:text-5xl mb-8 md:mb-14 capitalize",
           ])}
         >
-          More from USA Shop
+          You might also like
         </h2>
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 gap-4 lg:gap-5 justify-items-center">
           {related.map((p) => (
@@ -78,7 +78,7 @@ export default function UsaDemoProductPage({ params }: PageProps) {
             href="/usa-shop"
             className="inline-block sm:w-[218px] px-[54px] py-4 border rounded-full font-medium text-sm sm:text-base border-black/10 hover:bg-black hover:text-white transition-colors"
           >
-            View all USA Shop
+            View all products
           </Link>
         </div>
       </div>

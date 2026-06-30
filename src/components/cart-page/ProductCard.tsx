@@ -23,7 +23,7 @@ type ProductCardProps = {
 const ProductCard = ({ data }: ProductCardProps) => {
   const dispatch = useAppDispatch();
   const productDetailHref =
-    data.productId?.startsWith("usa-")
+    data.productId?.startsWith("srx-")
       ? `/usa-shop/item/${data.productId}/${data.name.split(" ").join("-")}`
       : `/shop/product/${data.id}/${data.name.split(" ").join("-")}`;
 

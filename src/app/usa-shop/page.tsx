@@ -13,9 +13,9 @@ import {
 import { USA_DEMO_PARENTS } from "@/lib/usa-demo-catalog";
 
 export const metadata = {
-  title: "USA Shop | SRX Retail",
+  title: "Shop | Merchant Provider SRX LLC",
   description:
-    "Browse USA-themed collections with transparent USD price bands — demo categories, no database required.",
+    "Browse private-label collections — generic men's, women's, and accessory styles with no third-party branding.",
 };
 
 export default function UsaShopIndexPage() {
@@ -32,7 +32,7 @@ export default function UsaShopIndexPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>USA Shop</BreadcrumbPage>
+              <BreadcrumbPage>Shop</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -43,12 +43,11 @@ export default function UsaShopIndexPage() {
             "text-3xl md:text-[40px] font-bold mb-3 capitalize",
           ])}
         >
-          USA Shop
+          Shop
         </h1>
         <p className="text-black/60 max-w-2xl mb-10">
-          Demo collections for your SRX storefront — prices shown in USD bands from
-          about 100 to 300. No Supabase or admin: these categories and products ship
-          from the frontend only.
+          Private-label apparel from Merchant Provider SRX LLC. Every product uses a
+          generic title only — no Nike, Levi&apos;s, or other famous brand names.
         </p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

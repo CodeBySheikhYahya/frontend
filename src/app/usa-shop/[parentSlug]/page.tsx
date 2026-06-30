@@ -42,7 +42,7 @@ export default function UsaShopParentPage({ params }: PageProps) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href="/usa-shop">USA Shop</Link>
+                <Link href="/usa-shop">Shop</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />

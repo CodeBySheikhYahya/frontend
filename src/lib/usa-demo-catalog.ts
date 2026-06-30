@@ -1,13 +1,13 @@
 import type { Product, ProductVariant } from "@/types/product.types";
 
-const navy = { id: "usa-col-navy", name: "Navy", hex_code: "#1B2A41" };
-const sand = { id: "usa-col-sand", name: "Sand", hex_code: "#D7C8B4" };
-const slate = { id: "usa-col-slate", name: "Slate", hex_code: "#4A5568" };
-const ivory = { id: "usa-col-ivory", name: "Ivory", hex_code: "#F5F0E8" };
+const navy = { id: "srx-col-navy", name: "Navy", hex_code: "#1B2A41" };
+const sand = { id: "srx-col-sand", name: "Sand", hex_code: "#D7C8B4" };
+const slate = { id: "srx-col-slate", name: "Slate", hex_code: "#4A5568" };
+const ivory = { id: "srx-col-ivory", name: "Ivory", hex_code: "#F5F0E8" };
 
-const s = { id: "usa-sz-s", name: "S" };
-const m = { id: "usa-sz-m", name: "M" };
-const l = { id: "usa-sz-l", name: "L" };
+const s = { id: "srx-sz-s", name: "S" };
+const m = { id: "srx-sz-m", name: "M" };
+const l = { id: "srx-sz-l", name: "L" };
 
 function matrixVariants(
   colors: { id: string; name: string; hex_code: string }[],
@@ -31,65 +31,49 @@ function matrixVariants(
   return out;
 }
 
-/**
- * Curated Unsplash photo ids that still resolve on `images.unsplash.com` (many
- * legacy ids 404). Each product uses a different subset so galleries feel real.
- */
-const DEMO_PHOTOS = [
-  "1602810318383-e386cc2a3ccf",
-  "1551028719-00167b16eac5",
-  "1595777457583-95e059d581b8",
-  "1576566588028-4147f3842f27",
-  "1591195853828-11db59a44f6b",
-  "1473966968600-fa801b869a1a",
-  "1590874103328-eac38a683ce7",
-  "1586790170083-2f9ceadc732d",
-  "1556821840-3a63f95609a7",
-  "1543163521-1bf539c55dd2",
-  "1521369909029-2afed882baee",
-  "1509631179647-0177331693ae",
-  "1490111718993-d98654ce6cf7",
-  "1469334031218-e382a71b716b",
-  "1441986300917-64674bd600d8",
-  "1523381210434-271e8be1f52b",
-  "1490481651871-ab68de25d43d",
-  "1483985988355-763728e1935b",
-  "1542272604-787c3835535d",
-  "1539109136881-3be0616acf4b",
-  "1434389677669-e08b4cac3105",
-  "1445205170230-053b83016050",
-  "1515886657613-9f3515b0c78f",
-  "1549298916-b41d501d3772",
-  "1460353581641-37baddab0fa2",
-  "1506629082955-511b1aa562c8",
-  "1503341504253-dff4815485f1",
-  "1542291026-7eec264c27ff",
-  "1572635196237-14b3f281503f",
-  "1507679799987-c73779587ccf",
-  "1553062407-98eeb64c6a62",
-  "1521572163474-6864f9cf17ab",
-] as const;
-
-function photo(id: string): string {
+/** Verified Unsplash ids (404-checked) — one image per product. */
+function unsplash(id: string): string {
   return `https://images.unsplash.com/photo-${id}?w=900&q=80`;
 }
 
-function media(...unsplashIds: string[]): Pick<Product, "srcUrl" | "gallery"> {
-  const gallery = unsplashIds.map(photo);
-  return { srcUrl: gallery[0]!, gallery };
-}
+const CATALOG_IMAGES: Record<string, string> = {
+  "srx-mens-cotton-tshirt": unsplash("1521572163474-6864f9cf17ab"),
+  "srx-classic-pocket-tee": unsplash("1602810318383-e386cc2a3ccf"),
+  "srx-classic-polo-shirt": unsplash("1551028719-00167b16eac5"),
+  "srx-cotton-crew-sweater": unsplash("1434389677669-e08b4cac3105"),
+  "srx-casual-denim-jeans": unsplash("1543163521-1bf539c55dd2"),
+  "srx-cargo-pants": unsplash("1506629082955-511b1aa562c8"),
+  "srx-oversized-hoodie": unsplash("1556821840-3a63f95609a7"),
+  "srx-lightweight-windbreaker": unsplash("1586790170083-2f9ceadc732d"),
+  "srx-womens-sports-leggings": unsplash("1515886657613-9f3515b0c78f"),
+  "srx-athletic-tank-top": unsplash("1490481651871-ab68de25d43d"),
+  "srx-midi-dress": unsplash("1515372039744-b8f02a3ae446"),
+  "srx-cotton-midi-skirt": unsplash("1595777457583-95e059d581b8"),
+  "srx-stretch-chino-pants": unsplash("1483985988355-763728e1935b"),
+  "srx-pullover-knit-sweater": unsplash("1576566588028-4147f3842f27"),
+  "srx-unstructured-blazer": unsplash("1594938298603-c8148c4dae35"),
+  "srx-casual-shorts": unsplash("1591195853828-11db59a44f6b"),
+  "srx-running-shoes": unsplash("1460353581641-37baddab0fa2"),
+  "srx-suede-loafers": unsplash("1549298916-b41d501d3772"),
+  "srx-leather-sandals": unsplash("1539109136881-3be0616acf4b"),
+  "srx-pool-slides": unsplash("1503341504253-dff4815485f1"),
+  "srx-leather-wallet": unsplash("1572635196237-14b3f281503f"),
+  "srx-baseball-cap": unsplash("1521369909029-2afed882baee"),
+  "srx-canvas-tote-bag": unsplash("1590874103328-eac38a683ce7"),
+  "srx-stainless-steel-watch": unsplash("1523275335684-37898b6baf30"),
+};
 
-/** Map pool indices → multi-image product media (4–5 distinct photos per SKU). */
-function mediaPick(
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e?: number
-): Pick<Product, "srcUrl" | "gallery"> {
-  const ix = e === undefined ? [a, b, c, d] : [a, b, c, d, e];
-  const ids = ix.map((i) => DEMO_PHOTOS[i]!);
-  return media(...ids);
+const CATEGORY_HERO_IMAGES: Record<string, string> = {
+  "mens-clothing": unsplash("1521572163474-6864f9cf17ab").replace("w=900", "w=1200"),
+  "womens-clothing": unsplash("1515886657613-9f3515b0c78f").replace("w=900", "w=1200"),
+  "footwear-accessories": unsplash("1460353581641-37baddab0fa2").replace("w=900", "w=1200"),
+};
+
+function catalogMedia(productId: string): Pick<Product, "srcUrl" | "gallery"> {
+  const url =
+    CATALOG_IMAGES[productId] ??
+    "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900&q=80";
+  return { srcUrl: url, gallery: [url] };
 }
 
 const noDiscount = { amount: 0, percentage: 0 };
@@ -113,103 +97,100 @@ export type UsaDemoParent = {
 
 export const USA_DEMO_PARENTS: UsaDemoParent[] = [
   {
-    name: "West Coast Living",
-    slug: "west-coast-living",
+    name: "Men's Clothing",
+    slug: "mens-clothing",
     priceBand: "98.00 – 215.00 USD",
-    tagline: "Relaxed layers inspired by California & Pacific Northwest streets.",
-    heroImage:
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1200&q=80",
+    tagline: "Private-label essentials for everyday wear — tops, bottoms, and layers.",
+    heroImage: CATEGORY_HERO_IMAGES["mens-clothing"]!,
     subs: [
       {
-        name: "Coastal Casuals",
-        slug: "coastal-casuals",
-        priceBand: "98.00 – 178.00 USD",
-        blurb: "Breezy shirts, tees, and light jackets for foggy mornings.",
+        name: "Tops & Tees",
+        slug: "tops-tees",
+        priceBand: "98.00 – 189.00 USD",
+        blurb: "Cotton tees, polos, and knit tops with a clean, generic fit.",
         productIds: [
-          "usa-wc-malibu-linen-shirt",
-          "usa-wc-venice-slub-pocket-tee",
-          "usa-wc-santa-cruz-jacket",
-          "usa-wc-carmel-court-sneaker",
+          "srx-mens-cotton-tshirt",
+          "srx-classic-pocket-tee",
+          "srx-classic-polo-shirt",
+          "srx-cotton-crew-sweater",
         ],
       },
       {
-        name: "Metro Layering",
-        slug: "metro-layering",
-        priceBand: "128.00 – 215.00 USD",
-        blurb: "City commutes: polos, hoodies, knits, and performance layers.",
+        name: "Bottoms & Outerwear",
+        slug: "bottoms-outerwear",
+        priceBand: "112.00 – 215.00 USD",
+        blurb: "Jeans, cargo pants, hoodies, and lightweight jackets.",
         productIds: [
-          "usa-wc-san-diego-performance-polo",
-          "usa-wc-seattle-merino-crew",
-          "usa-wc-portland-hoodie",
-          "usa-wc-oakland-nylon-track-jacket",
+          "srx-casual-denim-jeans",
+          "srx-cargo-pants",
+          "srx-oversized-hoodie",
+          "srx-lightweight-windbreaker",
         ],
       },
     ],
   },
   {
-    name: "American Heritage",
-    slug: "american-heritage",
-    priceBand: "118.00 – 298.00 USD",
-    tagline: "Workweek polish and weekend ease — made for USA closets.",
-    heroImage:
-      "https://images.unsplash.com/photo-1490111718993-d98654ce6cf7?w=1200&q=80",
+    name: "Women's Clothing",
+    slug: "womens-clothing",
+    priceBand: "92.00 – 298.00 USD",
+    tagline: "Unbranded women's styles — activewear, dresses, and casual layers.",
+    heroImage: CATEGORY_HERO_IMAGES["womens-clothing"]!,
     subs: [
       {
-        name: "Workweek Edit",
-        slug: "workweek-edit",
-        priceBand: "118.00 – 298.00 USD",
-        blurb: "Chinos, leather, tailoring, and boardroom-ready staples.",
+        name: "Activewear",
+        slug: "activewear",
+        priceBand: "92.00 – 249.00 USD",
+        blurb: "Leggings, tanks, and dresses built for comfort and movement.",
         productIds: [
-          "usa-ah-chicago-chinos",
-          "usa-ah-denver-leather-belt",
-          "usa-ah-philly-hopsack-blazer",
-          "usa-ah-detroit-steel-chronograph",
+          "srx-womens-sports-leggings",
+          "srx-athletic-tank-top",
+          "srx-midi-dress",
+          "srx-cotton-midi-skirt",
         ],
       },
       {
-        name: "Weekend Ease",
-        slug: "weekend-ease",
-        priceBand: "128.00 – 228.00 USD",
-        blurb: "Soft knits, polos, and easy drivers for Saturday markets.",
+        name: "Casual Wear",
+        slug: "casual-wear",
+        priceBand: "112.00 – 298.00 USD",
+        blurb: "Chinos, knits, blazers, and shorts for daily outfits.",
         productIds: [
-          "usa-ah-nashville-polo",
-          "usa-ah-austin-knit",
-          "usa-ah-savannah-suede-driver",
+          "srx-stretch-chino-pants",
+          "srx-pullover-knit-sweater",
+          "srx-unstructured-blazer",
+          "srx-casual-shorts",
         ],
       },
     ],
   },
   {
-    name: "Sunbelt & Resort",
-    slug: "sunbelt-resort",
-    priceBand: "92.00 – 289.00 USD",
-    tagline: "Heat-friendly fabrics from Miami patios to desert sunsets.",
-    heroImage:
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1200&q=80",
+    name: "Footwear & Accessories",
+    slug: "footwear-accessories",
+    priceBand: "96.00 – 268.00 USD",
+    tagline: "Generic shoes, wallets, caps, and bags from the SRX private-label line.",
+    heroImage: CATEGORY_HERO_IMAGES["footwear-accessories"]!,
     subs: [
       {
-        name: "Vacation Dressing",
-        slug: "vacation-dressing",
-        priceBand: "168.00 – 289.00 USD",
-        blurb: "Dresses, wraps, and resort bags for coastal getaways.",
+        name: "Shoes",
+        slug: "shoes",
+        priceBand: "96.00 – 228.00 USD",
+        blurb: "Running shoes, loafers, sandals, and slides — no third-party branding.",
         productIds: [
-          "usa-sb-charleston-dress",
-          "usa-sb-naples-linen-sarong",
-          "usa-sb-key-west-tote",
-          "usa-sb-miami-raffia-clutch",
+          "srx-running-shoes",
+          "srx-suede-loafers",
+          "srx-leather-sandals",
+          "srx-pool-slides",
         ],
       },
       {
-        name: "Warm-Weather Basics",
-        slug: "warm-weather-basics",
-        priceBand: "92.00 – 168.00 USD",
-        blurb: "Shorts, slides, sandals, and sun-ready accessories.",
+        name: "Accessories",
+        slug: "accessories",
+        priceBand: "104.00 – 268.00 USD",
+        blurb: "Wallets, caps, totes, and everyday add-ons.",
         productIds: [
-          "usa-sb-palm-springs-shorts",
-          "usa-sb-aspen-swim-volley",
-          "usa-sb-scottsdale-sandals",
-          "usa-sb-miami-pool-slide",
-          "usa-sb-sedona-hat",
+          "srx-leather-wallet",
+          "srx-baseball-cap",
+          "srx-canvas-tote-bag",
+          "srx-stainless-steel-watch",
         ],
       },
     ],
@@ -217,343 +198,323 @@ export const USA_DEMO_PARENTS: UsaDemoParent[] = [
 ];
 
 const USA_DEMO_PRODUCTS: Record<string, Product> = {
-  "usa-wc-malibu-linen-shirt": {
-    id: "usa-wc-malibu-linen-shirt",
-    title: "Malibu Linen Shirt",
-    ...mediaPick(0, 31, 7, 15, 16),
-    price: 129,
-    discount: noDiscount,
-    rating: 4.7,
-    short_description:
-      "Breathable linen blend — tailored for California evenings. Ships within the continental USA.",
-    description:
-      "Lightweight linen-viscose blend with mother-of-pearl buttons. Designed for warm coastal climates across the USA.",
-    variants: matrixVariants([navy, sand], [s, m, l], "usa-wc-malibu"),
-    size_type: "clothing",
-  },
-  "usa-wc-venice-slub-pocket-tee": {
-    id: "usa-wc-venice-slub-pocket-tee",
-    title: "Venice Slub Pocket Tee",
-    ...mediaPick(31, 16, 21, 22),
+  "srx-mens-cotton-tshirt": {
+    id: "srx-mens-cotton-tshirt",
+    title: "Men's Cotton T-Shirt",
+    ...catalogMedia("srx-mens-cotton-tshirt"),
     price: 98,
     discount: noDiscount,
-    rating: 4.5,
-    short_description:
-      "Garment-dyed cotton slub with a chest pocket — boardwalk to backyard BBQ.",
-    description:
-      "Pre-shrunk USA-cut body. Reinforced shoulder seams; tagless neck for all-day comfort.",
-    variants: matrixVariants([ivory, navy, slate], [s, m, l], "usa-wc-ven"),
-    size_type: "clothing",
-  },
-  "usa-wc-santa-cruz-jacket": {
-    id: "usa-wc-santa-cruz-jacket",
-    title: "Santa Cruz Denim Jacket",
-    ...mediaPick(1, 18, 17, 14, 13),
-    price: 165,
-    discount: noDiscount,
-    rating: 4.6,
-    short_description:
-      "Classic indigo rinse with USA-milled hardware and contrast stitching.",
-    description:
-      "Relaxed fit denim jacket. Layer over tees from San Diego to Seattle.",
-    variants: matrixVariants([navy, slate], [s, m, l], "usa-wc-sc"),
-    size_type: "clothing",
-  },
-  "usa-wc-carmel-court-sneaker": {
-    id: "usa-wc-carmel-court-sneaker",
-    title: "Carmel Court Sneaker",
-    ...mediaPick(23, 24, 9, 27, 25),
-    price: 178,
-    discount: noDiscount,
     rating: 4.7,
-    short_description:
-      "Low-profile leather cupsole — walks the Embarcadero or gallery openings.",
+    short_description: "Soft cotton crew neck tee — a private-label staple for everyday wear.",
     description:
-      "Cushioned footbed, rubber outsole, and full-grain upper. Whole sizes; half sizes order up.",
-    variants: matrixVariants([ivory, navy, slate], [s, m, l], "usa-wc-car"),
-    size_type: "shoes",
+      "100% cotton jersey with a relaxed fit. Pre-shrunk fabric, reinforced seams, and tagless neck label. Sold under the SRX generic apparel line.",
+    variants: matrixVariants([navy, sand, ivory], [s, m, l], "srx-mct"),
+    size_type: "clothing",
   },
-  "usa-wc-san-diego-performance-polo": {
-    id: "usa-wc-san-diego-performance-polo",
-    title: "San Diego Performance Polo",
-    ...mediaPick(7, 0, 19, 22),
+  "srx-classic-pocket-tee": {
+    id: "srx-classic-pocket-tee",
+    title: "Classic Pocket Tee",
+    ...catalogMedia("srx-classic-pocket-tee"),
+    price: 108,
+    discount: noDiscount,
+    rating: 4.5,
+    short_description: "Garment-dyed cotton tee with a chest pocket.",
+    description:
+      "Midweight slub cotton with a single patch pocket. Unbranded generic style suitable for casual and layered outfits.",
+    variants: matrixVariants([ivory, navy, slate], [s, m, l], "srx-cpt"),
+    size_type: "clothing",
+  },
+  "srx-classic-polo-shirt": {
+    id: "srx-classic-polo-shirt",
+    title: "Classic Polo Shirt",
+    ...catalogMedia("srx-classic-polo-shirt"),
     price: 128,
     discount: noDiscount,
     rating: 4.6,
-    short_description:
-      "Moisture-wicking pique with UV-aware weave — golf to rooftop happy hour.",
+    short_description: "Moisture-wicking pique polo with a structured collar.",
     description:
-      "Three-button placket, side vents, and anti-curl collar. Machine wash cold; tumble low.",
-    variants: matrixVariants([navy, slate, sand], [s, m, l], "usa-wc-sd"),
+      "Three-button placket, side vents, and anti-curl collar. Generic private-label polo — no external brand markings.",
+    variants: matrixVariants([navy, slate, sand], [s, m, l], "srx-cps"),
     size_type: "clothing",
   },
-  "usa-wc-seattle-merino-crew": {
-    id: "usa-wc-seattle-merino-crew",
-    title: "Seattle Merino Crew",
-    ...mediaPick(3, 20, 21, 16),
-    price: 189,
+  "srx-cotton-crew-sweater": {
+    id: "srx-cotton-crew-sweater",
+    title: "Cotton Crew Sweater",
+    ...catalogMedia("srx-cotton-crew-sweater"),
+    price: 149,
     discount: noDiscount,
     rating: 4.8,
-    short_description:
-      "Fine merino crewneck — ideal for cool PNW mornings and office AC.",
+    short_description: "Midweight cotton crewneck for cool days and office layering.",
     description:
-      "RWS-certified merino wool. Temperature-regulating for USA metro climates.",
-    variants: matrixVariants([navy, ivory], [s, m, l], "usa-wc-sea"),
+      "Ribbed cuffs and hem with a smooth knit body. Generic knitwear from the SRX essentials collection.",
+    variants: matrixVariants([navy, ivory], [s, m, l], "srx-ccs"),
     size_type: "clothing",
   },
-  "usa-wc-portland-hoodie": {
-    id: "usa-wc-portland-hoodie",
-    title: "Portland Tech Hoodie",
-    ...mediaPick(8, 26, 25, 15),
+  "srx-casual-denim-jeans": {
+    id: "srx-casual-denim-jeans",
+    title: "Casual Denim Jeans",
+    ...catalogMedia("srx-casual-denim-jeans"),
+    price: 165,
+    discount: noDiscount,
+    rating: 4.6,
+    short_description: "Straight-fit denim with classic five-pocket styling.",
+    description:
+      "Medium-wash cotton denim with contrast stitching. Unbranded generic jeans — no designer labels or logos.",
+    variants: matrixVariants([navy, slate], [s, m, l], "srx-cdj"),
+    size_type: "clothing",
+  },
+  "srx-cargo-pants": {
+    id: "srx-cargo-pants",
+    title: "Cargo Pants",
+    ...catalogMedia("srx-cargo-pants"),
+    price: 138,
+    discount: noDiscount,
+    rating: 4.5,
+    short_description: "Relaxed cargo pants with multiple utility pockets.",
+    description:
+      "Durable cotton twill with adjustable waist tabs. Private-label utility pant with a clean, unbranded look.",
+    variants: matrixVariants([slate, sand, navy], [s, m, l], "srx-cp"),
+    size_type: "clothing",
+  },
+  "srx-oversized-hoodie": {
+    id: "srx-oversized-hoodie",
+    title: "Oversized Hoodie",
+    ...catalogMedia("srx-oversized-hoodie"),
     price: 155,
     discount: noDiscount,
     rating: 4.5,
-    short_description:
-      "Mid-weight fleece with zip pockets — bike-to-work ready.",
+    short_description: "Mid-weight fleece hoodie with an oversized relaxed fit.",
     description:
-      "Cotton-poly fleece with water-resistant zip pockets. Sized for USA unisex fit.",
-    variants: matrixVariants([slate, sand], [s, m, l], "usa-wc-pdx"),
+      "Cotton-poly fleece with kangaroo pocket and drawcord hood. Generic streetwear silhouette — SRX private label.",
+    variants: matrixVariants([slate, sand, navy], [s, m, l], "srx-oh"),
     size_type: "clothing",
   },
-  "usa-wc-oakland-nylon-track-jacket": {
-    id: "usa-wc-oakland-nylon-track-jacket",
-    title: "Oakland Nylon Track Jacket",
-    ...mediaPick(17, 30, 3, 29, 8),
-    price: 215,
+  "srx-lightweight-windbreaker": {
+    id: "srx-lightweight-windbreaker",
+    title: "Lightweight Windbreaker",
+    ...catalogMedia("srx-lightweight-windbreaker"),
+    price: 175,
     discount: noDiscount,
     rating: 4.6,
-    short_description:
-      "Matte ripstop shell with mesh lining — BART commutes and evening runs.",
+    short_description: "Packable nylon shell with mesh lining.",
     description:
-      "Packable hood, reflective zip pulls, and zippered hand pockets. Wind-resistant DWR coating.",
-    variants: matrixVariants([navy, slate], [s, m, l], "usa-wc-oak"),
+      "Wind-resistant ripstop jacket with zip pockets and elastic cuffs. Unbranded outerwear for daily commutes.",
+    variants: matrixVariants([navy, slate], [s, m, l], "srx-lw"),
     size_type: "clothing",
   },
-  "usa-ah-chicago-chinos": {
-    id: "usa-ah-chicago-chinos",
-    title: "Chicago Stretch Chinos",
-    ...mediaPick(5, 25, 4, 18),
-    price: 198,
+  "srx-womens-sports-leggings": {
+    id: "srx-womens-sports-leggings",
+    title: "Women's Sports Leggings",
+    ...catalogMedia("srx-womens-sports-leggings"),
+    price: 92,
     discount: noDiscount,
-    rating: 4.6,
-    short_description:
-      "Four-way stretch twill — sharp for Midwest offices and dinners out.",
+    rating: 4.9,
+    short_description: "High-rise leggings with four-way stretch for training and leisure.",
     description:
-      "Tapered leg with grip waistband. Pressed crease holds through USA travel days.",
-    variants: matrixVariants([navy, slate], [s, m, l], "usa-ah-chi"),
+      "Moisture-wicking knit with flatlock seams and wide waistband. Generic activewear — no third-party branding.",
+    variants: matrixVariants([navy, slate, ivory], [s, m, l], "srx-wsl"),
     size_type: "clothing",
   },
-  "usa-ah-denver-leather-belt": {
-    id: "usa-ah-denver-leather-belt",
-    title: "Denver Full-Grain Belt",
-    ...mediaPick(18, 6, 30, 26),
-    price: 118,
-    discount: noDiscount,
-    rating: 4.4,
-    short_description:
-      "Vegetable-tanned leather with brushed nickel buckle — USA sizing chart inside.",
-    description:
-      "Cut-to-fit instructions included. Pairs with denim or dress trousers nationwide.",
-    variants: matrixVariants([sand, slate], [s, m, l], "usa-ah-den"),
-    size_type: "clothing",
-  },
-  "usa-ah-philly-hopsack-blazer": {
-    id: "usa-ah-philly-hopsack-blazer",
-    title: "Philadelphia Hopsack Blazer",
-    ...mediaPick(29, 19, 16, 22, 17),
-    price: 298,
-    discount: noDiscount,
-    rating: 4.8,
-    short_description:
-      "Unstructured hopsack weave — breathable for East Coast humidity and AC.",
-    description:
-      "Patch pockets, partial lining, and genuine horn buttons. Tailored in a modern USA silhouette.",
-    variants: matrixVariants([navy, slate], [s, m, l], "usa-ah-phl"),
-    size_type: "clothing",
-  },
-  "usa-ah-detroit-steel-chronograph": {
-    id: "usa-ah-detroit-steel-chronograph",
-    title: "Detroit Steel Chronograph",
-    ...mediaPick(27, 23, 9, 28, 12),
-    price: 268,
-    discount: noDiscount,
-    rating: 4.7,
-    short_description:
-      "Brushed steel case, sapphire crystal, and USA-assembled quartz movement.",
-    description:
-      "100m water resistance, date window, and quick-release leather strap included in box.",
-    variants: matrixVariants([slate, navy, sand], [s, m, l], "usa-ah-det"),
-    size_type: "clothing",
-  },
-  "usa-ah-nashville-polo": {
-    id: "usa-ah-nashville-polo",
-    title: "Nashville Pima Polo",
-    ...mediaPick(7, 0, 31, 19),
-    price: 135,
+  "srx-athletic-tank-top": {
+    id: "srx-athletic-tank-top",
+    title: "Athletic Tank Top",
+    ...catalogMedia("srx-athletic-tank-top"),
+    price: 68,
     discount: noDiscount,
     rating: 4.5,
-    short_description:
-      "Ultra-soft pima cotton — concerts, patios, and road trips across the South.",
+    short_description: "Breathable racerback tank for workouts and warm weather.",
     description:
-      "Rib collar holds shape after USA domestic laundry cycles.",
-    variants: matrixVariants([ivory, navy], [s, m, l], "usa-ah-nash"),
+      "Lightweight performance fabric with a relaxed arm opening. Private-label generic tank top.",
+    variants: matrixVariants([ivory, navy, slate], [s, m, l], "srx-att"),
     size_type: "clothing",
   },
-  "usa-ah-austin-knit": {
-    id: "usa-ah-austin-knit",
-    title: "Austin Cotton Crew",
-    ...mediaPick(3, 0, 20, 21, 31),
+  "srx-midi-dress": {
+    id: "srx-midi-dress",
+    title: "Midi Dress",
+    ...catalogMedia("srx-midi-dress"),
     price: 149,
     discount: noDiscount,
     rating: 4.7,
-    short_description:
-      "Midweight organic cotton — music city nights and Hill Country mornings.",
+    short_description: "Lined midi dress with a clean A-line silhouette.",
     description:
-      "Garment-dyed for subtle variation. Ethically sewn for USA retail partners.",
-    variants: matrixVariants([sand, ivory], [s, m, l], "usa-ah-atx"),
+      "Soft viscose blend with side slits and hidden zip. Unbranded dress from the SRX women's collection.",
+    variants: matrixVariants([ivory, navy], [s, m, l], "srx-md"),
     size_type: "clothing",
   },
-  "usa-ah-savannah-suede-driver": {
-    id: "usa-ah-savannah-suede-driver",
-    title: "Savannah Suede Driver",
-    ...mediaPick(9, 23, 24, 27),
-    price: 228,
+  "srx-cotton-midi-skirt": {
+    id: "srx-cotton-midi-skirt",
+    title: "Cotton Midi Skirt",
+    ...catalogMedia("srx-cotton-midi-skirt"),
+    price: 118,
+    discount: noDiscount,
+    rating: 4.4,
+    short_description: "A-line cotton skirt with an elastic waistband.",
+    description:
+      "Breathable cotton twill in a mid-calf length. Generic skirt with no external brand labels.",
+    variants: matrixVariants([sand, ivory, navy], [s, m, l], "srx-cms"),
+    size_type: "clothing",
+  },
+  "srx-stretch-chino-pants": {
+    id: "srx-stretch-chino-pants",
+    title: "Stretch Chino Pants",
+    ...catalogMedia("srx-stretch-chino-pants"),
+    price: 128,
     discount: noDiscount,
     rating: 4.6,
-    short_description:
-      "Unlined suede moccasin construction — porches, docks, and cobblestone streets.",
+    short_description: "Four-way stretch chinos with a tapered leg.",
     description:
-      "Rubber pebble sole for grip. Use a suede brush; store with shoe trees for shape.",
-    variants: matrixVariants([sand, slate, navy], [s, m, l], "usa-ah-sav"),
-    size_type: "shoes",
-  },
-  "usa-sb-charleston-dress": {
-    id: "usa-sb-charleston-dress",
-    title: "Charleston Midi Dress",
-    ...mediaPick(2, 16, 19, 22, 17),
-    price: 249,
-    discount: noDiscount,
-    rating: 4.9,
-    short_description:
-      "Lined midi with side slits — garden parties from SC to CA wine country.",
-    description:
-      "Breathable viscose crepe. Dry-clean friendly for USA formal-resort dress codes.",
-    variants: matrixVariants([ivory, navy], [s, m, l], "usa-sb-chs"),
+      "Cotton-blend twill with grip waistband and pressed crease. Private-label trouser for work and weekends.",
+    variants: matrixVariants([navy, slate, sand], [s, m, l], "srx-scp"),
     size_type: "clothing",
   },
-  "usa-sb-naples-linen-sarong": {
-    id: "usa-sb-naples-linen-sarong",
-    title: "Naples Linen Sarong",
-    ...mediaPick(13, 16, 2, 26),
-    price: 168,
-    discount: noDiscount,
-    rating: 4.5,
-    short_description:
-      "Lightweight linen blend wrap — pool deck to sunset dinner on the Gulf.",
-    description:
-      "Fringe-free hem, hidden side tie, and packable into a beach tote.",
-    variants: matrixVariants([ivory, sand, navy], [s, m, l], "usa-sb-nap"),
-    size_type: "clothing",
-  },
-  "usa-sb-key-west-tote": {
-    id: "usa-sb-key-west-tote",
-    title: "Key West Canvas Tote",
-    ...mediaPick(6, 30, 29, 5),
-    price: 189,
-    discount: noDiscount,
-    rating: 4.3,
-    short_description:
-      "Heavy 18oz canvas, USA-printed straps — beach to farmers market.",
-    description:
-      "Interior zip pocket and reinforced base. Sized for domestic carry-on personal item.",
-    variants: matrixVariants([sand, slate], [s, m, l], "usa-sb-kw"),
-    size_type: "bags",
-  },
-  "usa-sb-miami-raffia-clutch": {
-    id: "usa-sb-miami-raffia-clutch",
-    title: "Miami Raffia Clutch",
-    ...mediaPick(30, 6, 26, 14),
-    price: 142,
-    discount: noDiscount,
-    rating: 4.4,
-    short_description:
-      "Structured raffia weave with magnetic closure — resort dress codes, done.",
-    description:
-      "Fits phone, keys, card case, and slim sunscreen. Spot-clean woven exterior only.",
-    variants: matrixVariants([sand, ivory, slate], [s, m, l], "usa-sb-mia"),
-    size_type: "bags",
-  },
-  "usa-sb-palm-springs-shorts": {
-    id: "usa-sb-palm-springs-shorts",
-    title: "Palm Springs Seersucker Shorts",
-    ...mediaPick(4, 5, 25, 18),
-    price: 112,
-    discount: noDiscount,
-    rating: 4.5,
-    short_description:
-      "Classic seersucker stripe — desert heat tested, poolside approved.",
-    description:
-      "Elastic-back waist with drawcord. Inseam tailored for USA standard short lengths.",
-    variants: matrixVariants([ivory, navy], [s, m, l], "usa-sb-ps"),
-    size_type: "clothing",
-  },
-  "usa-sb-aspen-swim-volley": {
-    id: "usa-sb-aspen-swim-volley",
-    title: "Aspen Swim Volley",
-    ...mediaPick(26, 4, 5, 12),
-    price: 92,
-    discount: noDiscount,
-    rating: 4.4,
-    short_description:
-      "Quick-dry microfiber with mesh brief — lakes, pools, and hotel spas.",
-    description:
-      "Zip back pocket for cards. 7 inseam; drawcord waist with metal tips.",
-    variants: matrixVariants([navy, slate, ivory], [s, m, l], "usa-sb-asp"),
-    size_type: "clothing",
-  },
-  "usa-sb-scottsdale-sandals": {
-    id: "usa-sb-scottsdale-sandals",
-    title: "Scottsdale Leather Sandals",
-    ...mediaPick(9, 23, 27, 24),
+  "srx-pullover-knit-sweater": {
+    id: "srx-pullover-knit-sweater",
+    title: "Pullover Knit Sweater",
+    ...catalogMedia("srx-pullover-knit-sweater"),
     price: 139,
     discount: noDiscount,
-    rating: 4.4,
-    short_description:
-      "Cushioned footbed with burnished straps — resort towns coast to coast.",
+    rating: 4.7,
+    short_description: "Midweight pullover with a soft brushed interior.",
     description:
-      "True-to-size USA whole sizes. Leather softens with wear in warm climates.",
-    variants: matrixVariants([sand, slate], [s, m, l], "usa-sb-sdz"),
+      "Garment-dyed cotton blend with ribbed neckline. Generic knit — sold exclusively under SRX.",
+    variants: matrixVariants([sand, ivory, slate], [s, m, l], "srx-pks"),
+    size_type: "clothing",
+  },
+  "srx-unstructured-blazer": {
+    id: "srx-unstructured-blazer",
+    title: "Unstructured Blazer",
+    ...catalogMedia("srx-unstructured-blazer"),
+    price: 198,
+    discount: noDiscount,
+    rating: 4.8,
+    short_description: "Relaxed blazer with patch pockets and partial lining.",
+    description:
+      "Lightweight woven fabric with horn-style buttons. Unbranded tailoring from the SRX workwear edit.",
+    variants: matrixVariants([navy, slate], [s, m, l], "srx-ub"),
+    size_type: "clothing",
+  },
+  "srx-casual-shorts": {
+    id: "srx-casual-shorts",
+    title: "Casual Shorts",
+    ...catalogMedia("srx-casual-shorts"),
+    price: 88,
+    discount: noDiscount,
+    rating: 4.5,
+    short_description: "Cotton shorts with an elastic-back waist and drawcord.",
+    description:
+      "Classic above-knee length in breathable cotton. Generic summer short — no logos or brand tags.",
+    variants: matrixVariants([ivory, navy, sand], [s, m, l], "srx-cs"),
+    size_type: "clothing",
+  },
+  "srx-running-shoes": {
+    id: "srx-running-shoes",
+    title: "Running Shoes",
+    ...catalogMedia("srx-running-shoes"),
+    price: 128,
+    discount: noDiscount,
+    rating: 4.7,
+    short_description: "Lightweight running shoes with cushioned midsole.",
+    description:
+      "Breathable mesh upper with rubber outsole. Generic athletic footwear — private-label, no famous brand marks.",
+    variants: matrixVariants([ivory, navy, slate], [s, m, l], "srx-rs"),
     size_type: "shoes",
   },
-  "usa-sb-miami-pool-slide": {
-    id: "usa-sb-miami-pool-slide",
-    title: "Miami Pool Slide",
-    ...mediaPick(27, 23, 24, 20),
+  "srx-suede-loafers": {
+    id: "srx-suede-loafers",
+    title: "Suede Loafers",
+    ...catalogMedia("srx-suede-loafers"),
+    price: 168,
+    discount: noDiscount,
+    rating: 4.6,
+    short_description: "Soft suede loafers with a flexible rubber sole.",
+    description:
+      "Unlined moccasin construction with pebble sole for grip. Generic casual shoe from SRX footwear.",
+    variants: matrixVariants([sand, slate, navy], [s, m, l], "srx-sl"),
+    size_type: "shoes",
+  },
+  "srx-leather-sandals": {
+    id: "srx-leather-sandals",
+    title: "Leather Sandals",
+    ...catalogMedia("srx-leather-sandals"),
+    price: 112,
+    discount: noDiscount,
+    rating: 4.4,
+    short_description: "Cushioned leather sandals with adjustable straps.",
+    description:
+      "Burnished leather straps over a contoured footbed. Unbranded warm-weather sandal.",
+    variants: matrixVariants([sand, slate], [s, m, l], "srx-lsd"),
+    size_type: "shoes",
+  },
+  "srx-pool-slides": {
+    id: "srx-pool-slides",
+    title: "Pool Slides",
+    ...catalogMedia("srx-pool-slides"),
     price: 96,
     discount: noDiscount,
     rating: 4.3,
-    short_description:
-      "Contoured EVA footbed with wide strap — cabana to city block.",
+    short_description: "Contoured EVA slides with a wide single strap.",
     description:
-      "Rinse-friendly; antimicrobial footbed liner. Whole sizes only.",
-    variants: matrixVariants([slate, ivory, navy], [s, m, l], "usa-sb-mps"),
+      "Rinse-friendly pool and shower slide with antimicrobial footbed liner. Generic private-label footwear.",
+    variants: matrixVariants([slate, ivory, navy], [s, m, l], "srx-ps"),
     size_type: "shoes",
   },
-  "usa-sb-sedona-hat": {
-    id: "usa-sb-sedona-hat",
-    title: "Sedona Packable Hat",
-    ...mediaPick(10, 28, 26, 11),
-    price: 104,
+  "srx-leather-wallet": {
+    id: "srx-leather-wallet",
+    title: "Leather Wallet",
+    ...catalogMedia("srx-leather-wallet"),
+    price: 68,
+    discount: noDiscount,
+    rating: 4.4,
+    short_description: "Full-grain leather bifold wallet with card slots.",
+    description:
+      "Vegetable-tanned leather with brushed metal hardware. Unbranded accessory — SRX private label.",
+    variants: matrixVariants([sand, slate, navy], [s, m, l], "srx-lw"),
+    size_type: "bags",
+  },
+  "srx-baseball-cap": {
+    id: "srx-baseball-cap",
+    title: "Baseball Cap",
+    ...catalogMedia("srx-baseball-cap"),
+    price: 42,
     discount: noDiscount,
     rating: 4.2,
-    short_description:
-      "Wide brim UPF fabric — folds into your carry-on for USA domestic hops.",
+    short_description: "Cotton twill cap with adjustable back strap.",
     description:
-      "Adjustable inner band. Spot-clean; designed for high-sun regions.",
-    variants: matrixVariants([sand, ivory], [s, m, l], "usa-sb-sed"),
+      "Structured six-panel cap with curved brim. Plain generic cap — no sports team or brand embroidery.",
+    variants: matrixVariants([navy, sand, slate], [s, m, l], "srx-bc"),
+    size_type: "clothing",
+  },
+  "srx-canvas-tote-bag": {
+    id: "srx-canvas-tote-bag",
+    title: "Canvas Tote Bag",
+    ...catalogMedia("srx-canvas-tote-bag"),
+    price: 78,
+    discount: noDiscount,
+    rating: 4.3,
+    short_description: "Heavy canvas tote with interior zip pocket.",
+    description:
+      "18oz cotton canvas with reinforced handles and flat base. Generic carry-all bag from SRX accessories.",
+    variants: matrixVariants([sand, slate, ivory], [s, m, l], "srx-ctb"),
+    size_type: "bags",
+  },
+  "srx-stainless-steel-watch": {
+    id: "srx-stainless-steel-watch",
+    title: "Stainless Steel Watch",
+    ...catalogMedia("srx-stainless-steel-watch"),
+    price: 148,
+    discount: noDiscount,
+    rating: 4.7,
+    short_description: "Brushed steel case with leather strap and date window.",
+    description:
+      "Quartz movement with mineral crystal and 50m water resistance. Generic timepiece — no luxury brand markings.",
+    variants: matrixVariants([slate, navy, sand], [s, m, l], "srx-ssw"),
     size_type: "clothing",
   },
 };
+
+export function isCatalogProductId(id: string | number): boolean {
+  return String(id).startsWith("srx-");
+}
 
 export function getUsaDemoParent(slug: string): UsaDemoParent | undefined {
   return USA_DEMO_PARENTS.find((p) => p.slug === slug);

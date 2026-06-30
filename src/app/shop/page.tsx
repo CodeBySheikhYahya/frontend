@@ -8,7 +8,7 @@ import {
   padWithUsaDemoProducts,
   padWithUsaDemoProductsExcluding,
 } from "@/lib/homepage-pad-demo-products";
-import { getAllUsaDemoProducts, usaDemoProductPath } from "@/lib/usa-demo-catalog";
+import { getAllUsaDemoProducts, isCatalogProductId, usaDemoProductPath } from "@/lib/usa-demo-catalog";
 import type { Product } from "@/types/product.types";
 import { unstable_noStore } from "next/cache";
 
@@ -26,7 +26,7 @@ interface ShopPageProps {
 const SHOP_PAGE_SIZE = 9;
 
 function resolveShopProductHref(product: Product) {
-  if (String(product.id).startsWith("usa-")) {
+  if (isCatalogProductId(product.id)) {
     return usaDemoProductPath(product);
   }
   return undefined;
@@ -84,7 +84,7 @@ const ShopPage: React.FC<ShopPageProps> = async ({ searchParams }) => {
     }
   }
 
-  // When Supabase has no rows for these views, show the same USA demo catalog as the homepage.
+  // When Supabase has no rows, show the private-label catalog as the homepage does.
   if (!categoryId && Object.keys(attributeFilters).length === 0 && products.length === 0) {
     if (filter === "new-arrivals" || filter === "all") {
       products = padWithUsaDemoProducts([], limit);

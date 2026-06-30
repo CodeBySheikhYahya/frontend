@@ -745,7 +745,7 @@ const CheckoutPage = () => {
                 className="h-12 flex-1 rounded-full border-black/20"
                 onClick={() => finishCheckoutAndNavigate("/usa-shop")}
               >
-                Browse USA Shop
+                Browse shop
               </Button>
             </div>
           </div>

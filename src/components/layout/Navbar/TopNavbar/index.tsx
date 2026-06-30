@@ -64,7 +64,7 @@ const TopNavbar = () => {
                     data={item.children as any}
                     label={item.label}
                     browseAllHref="/usa-shop"
-                    browseAllLabel="All collections (USA Shop)"
+                    browseAllLabel="All collections"
                   />
                 )}
               </React.Fragment>
